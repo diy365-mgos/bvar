@@ -115,7 +115,7 @@ Returns the value of a *bVariant*.
 **Remarks**
 
 The returned value depends on the input *bVariant* data-type. Please refer to details below.
-|Function / Input|INTEGER|BOOL|DECIMAL|STRING|Any other|
+|Function / data-type|INTEGER|BOOL|DECIMAL|STRING|Any other|
 |--|--|--|--|--|--|
 |**mgos_bvar_get_integer()**|Returns the integer value|Returns `0` if input value is `false`|Returns the integer part of the decimal|Returns `0`|Returns `0`|
 |**mgos_bvar_get_bool()**|Returns `false` if input value is `0`|Returns the boolean value|Returns `false` if input value is `0.0`|Returns `false` if input string is empty|Returns `false`|

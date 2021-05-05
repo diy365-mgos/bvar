@@ -1,6 +1,6 @@
 # bVariant Library
 ## Overview
-This Mongoose OS library allows you to create variant *bvariant*s which haven't data type declared explicitly (like using `var` statement in javascript). You can create variables that can easily and dynamically assume any data-type within the followings:
+This Mongoose OS library allows you to create variant *bVariant*s which haven't data type declared explicitly (like using `var` statement in javascript). You can create variables that can easily and dynamically assume any data-type within the followings:
 
 - Boolean (`bool`)
 - Integer (`long`)
@@ -8,7 +8,7 @@ This Mongoose OS library allows you to create variant *bvariant*s which haven't 
 - String (`char *`)
 - Dictionary (key/value pair dictionary) - This requires you to include the [bVariant Dictionary library](https://github.com/diy365-mgos/bvar-dic) in your porject.
 ## Features
-- **Observable value** - You can check it the value of a *bvariant* is changed or not.
+- **Observable value** - You can check it the value of a *bVariant* is changed or not.
 - **JSON support** - You can dynamically create a variant varibale from a JSON string or you can save it as JSON in a very easy way. Just include the [bVariant JSON library](https://github.com/diy365-mgos/bvar-json) into your project. 
 ## Get Started
 Include the library into your `mos.yml` file.
@@ -44,7 +44,7 @@ enum mgos_bvar_type {
 ```c
 enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var);
 ```
-Returns the *bvariant* [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYPE_DIC` if it is a dictionary.
+Returns the *bVariant* [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYPE_DIC` if it is a dictionary.
 
 |Parameter||
 |--|--|
@@ -53,7 +53,7 @@ Returns the *bvariant* [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYP
 ```c
 mgos_bvar_t mgos_bvar_new();
 ```
-Creates a type-less *bvariant* (with no data-type defined). Returns `NULL` if error. The returned instance must be deallocated using `mgos_bvar_free()`.
+Creates a type-less *bVariant* (with no data-type defined). Returns `NULL` if error. The returned instance must be deallocated using `mgos_bvar_free()`.
 ### mgos_bvar_new_integer | mgos_bvar_new_bool | mgos_bvar_new_decimal | mgos_bvar_new_str
 ```c       
 mgos_bvar_t mgos_bvar_new_integer(long value);
@@ -61,7 +61,7 @@ mgos_bvar_t mgos_bvar_new_bool(bool value);
 mgos_bvar_t mgos_bvar_new_decimal(double value);
 mgos_bvar_t mgos_bvar_new_str(const char *value);
 ```
-Creates and initializes a *bvariant*. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free`.
+Creates and initializes a *bVariant*. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free`.
 
 |Parameter||
 |--|--|
@@ -70,7 +70,7 @@ Creates and initializes a *bvariant*. Returns `NULL` if error. Invoking `mgos_bv
 ```c 
 void mgos_bvar_set_null(mgos_bvar_t var);
 ```
-Sets a *bvariant* as type-less (with no data-type defined).
+Sets a *bVariant* as type-less (with no data-type defined).
 
 |Parameter||
 |--|--|
@@ -82,7 +82,7 @@ void mgos_bvar_set_bool(mgos_bvar_t var, bool value);
 void mgos_bvar_set_decimal(mgos_bvar_t var, double value);
 void mgos_bvar_set_str(mgos_bvar_t var, const char *value);
 ```
-Sets the value of a *bvariant*. Invoking `mgos_bvar_set_str(var, NULL)` is equivalent to `mgos_bvar_set_null(var)`.
+Sets the value of a *bVariant*. Invoking `mgos_bvar_set_str(var, NULL)` is equivalent to `mgos_bvar_set_null(var)`.
 
 |Parameter||
 |--|--|
@@ -92,7 +92,7 @@ Sets the value of a *bvariant*. Invoking `mgos_bvar_set_str(var, NULL)` is equiv
 ```c 
 void mgos_bvar_set_nstr(mgos_bvar_t var, const char *value, size_t value_len);
 ```
-Sets a *bvariant* value to the provided string. This is a specialized version of `mgos_bvar_set_str()` Invoking `mgos_bvar_set_nstr(var, NULL, <any_value>)` is equivalent to `mgos_bvar_set_null(var)`.
+Sets a *bVariant* value to the provided string. This is a specialized version of `mgos_bvar_set_str()` Invoking `mgos_bvar_set_nstr(var, NULL, <any_value>)` is equivalent to `mgos_bvar_set_null(var)`.
 
 |Parameter||
 |--|--|
@@ -106,7 +106,7 @@ bool mgos_bvar_get_bool(mgos_bvarc_t var);
 double mgos_bvar_get_decimal(mgos_bvarc_t var);
 const char *mgos_bvar_get_str(mgos_bvarc_t var);
 ```
-Returns the value of a *bvariant*.
+Returns the value of a *bVariant*.
 
 |Parameter||
 |--|--|
@@ -114,7 +114,7 @@ Returns the value of a *bvariant*.
 
 **Remarks**
 
-The returned value depends on the input *bvariant* data-type. Please refer to details below.
+The returned value depends on the input *bVariant* data-type. Please refer to details below.
 |Function / Input|INTEGER|BOOL|DECIMAL|STRING|Any other|
 |--|--|--|--|--|--|
 |mgos_bvar_get_integer|Returns the integer value|Returns `0` if input value is `false`|Returns the integer part of the decimal|Returns `0`|Returns `0`|
@@ -153,7 +153,7 @@ Returns `true` if the *bVariant* is type-less (with no data-type defined), or `f
 ```c
 bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var); 
 ```
-Copies a source *bvariant* into the destination one. Returns `true` if successfully copied, or `false` otherwise.
+Copies a source *bVariant* into the destination one. Returns `true` if successfully copied, or `false` otherwise.
 
 |Parameter||
 |--|--|
@@ -172,7 +172,7 @@ Returns the number of items in a dictionary or the string length. Returns `0` in
 ```c
 void mgos_bvar_set_unchanged(mgos_bvar_t var);
 ```
-Marks the *bvariant* as unchanged. This function could be used in combination with `mgos_bvar_is_changed()`.
+Marks the *bVariant* as unchanged. This function could be used in combination with `mgos_bvar_is_changed()`.
 
 |Parameter||
 |--|--|
@@ -190,7 +190,7 @@ Returns `true` if the *bVariant* is changed since its creation or since the last
 ```c
 void mgos_bvar_free(mgos_bvar_t var);
 ```
-Deallocates the *bvariant*. If it is an element of a dictionary, it is also removed from the collection. If it is a dictionary, all its items are deallocated as well.
+Deallocates the *bVariant*. If it is an element of a dictionary, it is also removed from the collection. If it is a dictionary, all its items are deallocated as well.
 
 |Parameter||
 |--|--|

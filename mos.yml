@@ -1,0 +1,22 @@
+author: DIY365
+type: lib
+description: This Mongoose OS library allows you to create variant variables which haven't data type declared explicitly.
+version: 1.0
+
+sources:
+  - src
+
+includes:
+  - include
+
+filesystem:
+  - fs
+
+config_schema:
+
+libs:
+
+tags:
+  - c
+
+manifest_version: 2017-09-29

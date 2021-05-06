@@ -2,11 +2,11 @@
 #include <string.h>
 #include "mgos_bvar.h"
 
-#if MGOS_BVAR_HAVE_JSON
+#ifdef MGOS_BVAR_HAVE_JSON
 #include "mgos_bvar_json.h"
 #endif
 
-#if MGOS_BVAR_HAVE_DIC
+#ifdef MGOS_BVAR_HAVE_DIC
 #include "mgos_bvar_dic.h"
 #endif
 
@@ -25,13 +25,13 @@
 int main()
 {
   printf("Tests in progress...\n");
-  #if MGOS_BVAR_HAVE_JSON
+  #ifdef MGOS_BVAR_HAVE_JSON
   printf("  - Testing JSON          [X]\n");
   #else
   printf("  - Testing JSON          [ ]\n");
   printf("    (uncomment line 23 in 'mgos_bvar.h' to enable JSON tests)\n");
   #endif
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   printf("  - Testing dictionary    [X]\n");
   #else
   printf("  - Testing dictionary    [ ]\n");
@@ -41,7 +41,7 @@ int main()
   
   mgos_bvar_t v1 = NULL, v2 = NULL;
   mgos_bvarc_t cv1 = NULL;
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   mgos_bvarc_enum_t e1 = NULL;
   #endif
   const char *key1, key2;
@@ -313,7 +313,7 @@ int main()
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
  
-  #if MGOS_BVAR_HAVE_JSON
+  #ifdef MGOS_BVAR_HAVE_JSON
 
   v1 = mgos_bvar_new_str("Mark");
   json = json_asprintf("%M", json_printf_bvar, v1);
@@ -404,7 +404,7 @@ int main()
   
   #endif // MGOS_BVAR_HAVE_JSON
 
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   
   v1 = mgos_bvar_new_dic();
   ASSERT(mgos_bvar_is_dic(v1));
@@ -799,7 +799,7 @@ int main()
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
-  #if MGOS_BVAR_HAVE_JSON
+  #ifdef MGOS_BVAR_HAVE_JSON
 
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));

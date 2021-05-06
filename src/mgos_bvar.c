@@ -3,11 +3,11 @@
 #include <stdarg.h>
 #include "mgos_bvar.h"
 
-#if MGOS_BVAR_HAVE_JSON
+#ifdef MGOS_BVAR_HAVE_JSON
 #include "mgos_bvar_json.h"
 #endif
 
-#if MGOS_BVAR_HAVE_DIC
+#ifdef MGOS_BVAR_HAVE_DIC
 #include "mgos_bvar_dic.h"
 #endif
 
@@ -15,7 +15,7 @@
 #include "mjs.h"
 #endif /* MGOS_HAVE_MJS */
 
-#if MGOS_BVAR_HAVE_DIC
+#ifdef MGOS_BVAR_HAVE_DIC
 struct mg_bvar_dic_key {
   const char* name;
   mgos_bvar_t var;
@@ -34,7 +34,7 @@ union mgos_bvar_value {
    double d;
    bool b;
    char *s;
-   #if MGOS_BVAR_HAVE_DIC
+   #ifdef MGOS_BVAR_HAVE_DIC
    struct mg_bvar_dic_head dic_head;
    #endif
 };
@@ -44,19 +44,19 @@ struct mg_bvar {
   union mgos_bvar_value value;
   size_t v_size;
   char changed;
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   struct mg_bvar_dic_key *key;
   #endif
 };
 
-#if MGOS_BVAR_HAVE_JSON
+#ifdef MGOS_BVAR_HAVE_JSON
 struct mg_bvar_json_walk_cb_arg {
   mgos_bvar_t var;
   char ret;
 };
 #endif
 
-#if MGOS_BVAR_HAVE_DIC
+#ifdef MGOS_BVAR_HAVE_DIC
 
 mgos_bvar_t mg_bvar_dic_get_root(mgos_bvar_t var) {
   if (!var) return NULL;
@@ -77,7 +77,7 @@ mgos_bvar_t mg_bvar_dic_get_parent(mgos_bvar_t var, bool root) {
 
 void mg_bvar_close(mgos_bvar_t var) {
   if (var) {
-    #if MGOS_BVAR_HAVE_DIC
+    #ifdef MGOS_BVAR_HAVE_DIC
     if (mgos_bvar_is_dic(var)) mgos_bvar_remove_keys(var);
     #endif
     if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) {
@@ -96,7 +96,7 @@ mgos_bvar_t mg_bvar_set_type(mgos_bvar_t var, enum mgos_bvar_type t) {
 
 void mg_bvar_set_changed(mgos_bvar_t var) {
   if (!var) return;
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   mgos_bvar_t parent = mg_bvar_dic_get_parent(var, false);
   if (parent != var) { 
     mg_bvar_set_changed(parent);
@@ -105,7 +105,7 @@ void mg_bvar_set_changed(mgos_bvar_t var) {
   var->changed = 1;
 }
 
-#if MGOS_BVAR_HAVE_DIC
+#ifdef MGOS_BVAR_HAVE_DIC
 
 mgos_bvar_t mg_bvar_dic_ensure(mgos_bvar_t var, bool clear) {
   if (var) {
@@ -225,7 +225,7 @@ bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
 
 #endif //MGOS_BVAR_HAVE_DIC
 
-#if MGOS_BVAR_HAVE_JSON
+#ifdef MGOS_BVAR_HAVE_JSON
 
 void mg_bvar_json_walk_cb(void *callback_data,
                           const char *name, size_t name_len,
@@ -238,7 +238,7 @@ void mg_bvar_json_walk_cb(void *callback_data,
   if (token->type == JSON_TYPE_STRING || token->type == JSON_TYPE_NUMBER ||
       token->type == JSON_TYPE_FALSE  || token->type == JSON_TYPE_TRUE ||
       token->type == JSON_TYPE_NULL   || token->type == JSON_TYPE_OBJECT_START) {
-    #if MGOS_BVAR_HAVE_DIC
+    #ifdef MGOS_BVAR_HAVE_DIC
     new_item = (token->type == JSON_TYPE_OBJECT_START ? mgos_bvar_new_dic() : mgos_bvar_new()); 
     if (arg->var && name) {
       mg_bvar_dic_add(arg->var, name, name_len, new_item);
@@ -272,7 +272,7 @@ void mg_bvar_json_walk_cb(void *callback_data,
     case JSON_TYPE_STRING:
       mgos_bvar_set_nstr(new_item, token->ptr, token->len);
       break;
-    #if MGOS_BVAR_HAVE_DIC
+    #ifdef MGOS_BVAR_HAVE_DIC
     case JSON_TYPE_OBJECT_START:
       // nothing to do
       break;
@@ -336,7 +336,7 @@ enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var) {
 
 void mgos_bvar_set_null(mgos_bvar_t var) {
   if (var && (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_NULL)) {
-    #if MGOS_BVAR_HAVE_DIC
+    #ifdef MGOS_BVAR_HAVE_DIC
     if (mgos_bvar_is_dic(var)) {
       mgos_bvar_remove_keys(var);
     }
@@ -353,7 +353,7 @@ int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
   if (var1 != NULL && var2 == NULL) return 1; // var1 > var2
   if (var1 == var2) return 0; // comparing the same instance
   
-   #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   if(mgos_bvar_is_dic(var1) || mgos_bvar_is_dic(var2)) {
     return (mg_bvar_dic_are_equal(var1, var2) ? 0 : -1);
   }
@@ -363,8 +363,8 @@ int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
   enum mgos_bvar_type t2 = mgos_bvar_get_type(var2);
   
   if(t1 != t2) {
-    if (t1 != MGOS_BVAR_TYPE_INTEGER && t1 != MGOS_BVAR_TYPE_DECIMAL ||
-        t1 != MGOS_BVAR_TYPE_INTEGER && t1 != MGOS_BVAR_TYPE_DECIMAL) {
+    if ((t1 != MGOS_BVAR_TYPE_INTEGER && t1 != MGOS_BVAR_TYPE_DECIMAL) ||
+        (t1 != MGOS_BVAR_TYPE_INTEGER && t1 != MGOS_BVAR_TYPE_DECIMAL)) {
       return INT_MAX;       
     }
   }
@@ -395,7 +395,7 @@ bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
   if (!src_var || !dest_var) return false;
   if (src_var == dest_var) return true; // coping the same instance
   
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(src_var)) {
     return mg_bvar_dic_copy(src_var, dest_var, true);
   }
@@ -426,7 +426,7 @@ bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
 
 bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
   if (src_var == dest_var) return true; // merging the same instance
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(src_var)) {
     return  mg_bvar_dic_copy(src_var, dest_var, false);
   }
@@ -511,7 +511,7 @@ void mgos_bvar_set_str(mgos_bvar_t var, const char *value) {
 
 void mgos_bvar_set_unchanged(mgos_bvar_t var) {
   if (!var) return;
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(var)) {
     mgos_bvar_t v = var->value.dic_head.var;
     while(v) {
@@ -570,13 +570,13 @@ const char *mgos_bvar_get_str(mgos_bvarc_t var) {
   return ((mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) ? var->value.s : NULL);
 }
 
-#if MGOS_BVAR_HAVE_JSON
+#ifdef MGOS_BVAR_HAVE_JSON
 
 int json_printf_bvar(struct json_out *out, va_list *ap) {
   mgos_bvarc_t var = va_arg(*ap, void *);
   
   int len = 0;
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   if (var->key) len += json_printf(out, "%Q:", var->key->name);
   if (mgos_bvar_is_dic(var)) {
     len += json_printf(out, "{");
@@ -616,7 +616,7 @@ mgos_bvar_t mgos_bvar_json_scanf(const char *json) {
   if (json) {
     struct mg_bvar_json_walk_cb_arg arg = { .var = NULL, .ret = 0 };
     if ((json_walk(json, strlen(json), mg_bvar_json_walk_cb, &arg) > 0) && (arg.ret != -1)) {
-      #if MGOS_BVAR_HAVE_DIC
+      #ifdef MGOS_BVAR_HAVE_DIC
       var = mg_bvar_dic_get_root(arg.var);
       #else
       var = arg.var;
@@ -634,7 +634,7 @@ mgos_bvar_t mgos_bvar_json_scanf(const char *json) {
 void mgos_bvar_free(mgos_bvar_t var) {
   if (!var) return;
   
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   bool is_dic = mgos_bvar_is_dic(var);
   if (is_dic) {
     while (var->value.dic_head.var) {
@@ -643,7 +643,7 @@ void mgos_bvar_free(mgos_bvar_t var) {
   }
   #endif
 
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   struct mg_bvar_dic_key *key = var->key;
   if (key) {
     mgos_bvar_t parent = mg_bvar_dic_get_parent(var, false);
@@ -677,7 +677,7 @@ void mgos_bvar_free(mgos_bvar_t var) {
 }
 
 int mgos_bvar_length(mgos_bvarc_t var) {
-  #if MGOS_BVAR_HAVE_DIC
+  #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(var)) {
     return var->value.dic_head.count;
   }
@@ -688,7 +688,7 @@ int mgos_bvar_length(mgos_bvarc_t var) {
   return 0;
 }
 
-#if MGOS_BVAR_HAVE_DIC
+#ifdef MGOS_BVAR_HAVE_DIC
 
 mgos_bvar_t mgos_bvar_new_dic() {
   return mg_bvar_dic_ensure(mgos_bvar_new(), false);

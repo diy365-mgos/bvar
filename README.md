@@ -29,6 +29,11 @@ mgos_bvar_t d = mgos_bvar_new_decimal(101.99);    // double d = 101.99;
 mgos_bvar_t s = mgos_bvar_new_str("Lorem Ipsum"); // char *s = "Lorem Ipsum";
 ```
 ## C/C++ APIs Reference
+### MGOS_BVAR_CONST
+```c
+#define MGOS_BVAR_CONST(v) ((mgos_bvarc_t)v)
+```
+Macro to cast a *bVariant* to *const bVariant*. A constant *bVariant* can't be modified, it's readonly.
 ### enum mgos_bvar_type
 ```c
 enum mgos_bvar_type {

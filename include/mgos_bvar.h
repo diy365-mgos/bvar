@@ -48,6 +48,8 @@ struct mgos_bvariant;
 typedef struct mgos_bvariant *mgos_bvar_t;
 typedef const struct mgos_bvariant *mgos_bvarc_t;
 
+#define MGOS_BVAR_CONST(v) ((mgos_bvarc_t)v)
+
 mgos_bvar_t mgos_bvar_new();            
 mgos_bvar_t mgos_bvar_new_integer(long value);
 mgos_bvar_t mgos_bvar_new_bool(bool value);

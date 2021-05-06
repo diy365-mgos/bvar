@@ -69,8 +69,11 @@ double mgos_bvar_get_decimal(mgos_bvarc_t var);
 const char *mgos_bvar_get_str(mgos_bvarc_t var);
 
 enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var);
-bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var);  
+
 bool mgos_bvar_is_null(mgos_bvarc_t var);
+
+bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var);
+bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var);
 
 int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2);
 

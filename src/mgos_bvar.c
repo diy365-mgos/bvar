@@ -424,6 +424,16 @@ bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
   return true;
 }
 
+bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
+  if (src_var == dest_var) return true; // merging the same instance
+  #if MGOS_BVAR_HAVE_DIC
+  if (mgos_bvar_is_dic(src_var)) {
+    return  mg_bvar_dic_copy(src_var, dest_var, false);
+  }
+  #endif
+  return mgos_bvar_copy(src_var, dest_var);
+}
+
 void mgos_bvar_set_integer(mgos_bvar_t var, long value) {
   if (var) {
     if (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_INTEGER) {
@@ -682,15 +692,6 @@ int mgos_bvar_length(mgos_bvarc_t var) {
 
 mgos_bvar_t mgos_bvar_new_dic() {
   return mg_bvar_dic_ensure(mgos_bvar_new(), false);
-}
-
-bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
-  if (src_var == dest_var) return true; // merging the same instance
-  if (mgos_bvar_is_dic(src_var)) {
-    return  mg_bvar_dic_copy(src_var, dest_var, false);
-  } else {
-    return mgos_bvar_copy(src_var, dest_var);
-  }
 }
 
 bool mgos_bvar_is_dic(mgos_bvarc_t var) {

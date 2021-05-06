@@ -80,6 +80,15 @@ Sets a *bVariant* as type-less (with no data-type defined).
 |Parameter||
 |--|--|
 |var|A *bVariant*.|
+### mgos_bvar_is_null
+```c
+bool mgos_bvar_is_null(mgos_bvarc_t var);
+```
+Returns `true` if the *bVariant* is type-less (with no data-type defined), or `false` otherwise.
+
+|Parameter||
+|--|--|
+|var|A *bVariant*.|
 ### mgos_bvar_set_integer | mgos_bvar_set_bool | mgos_bvar_set_decimal | mgos_bvar_set_str
 ```c                                 
 void mgos_bvar_set_integer(mgos_bvar_t var, long value);
@@ -145,25 +154,26 @@ Returns an integer value indicating the relationship between the compared *bVari
 |<0|The value of *var1* is minor than the value of *var2*. If one or both of the *bVariants* are dictionaries, they are not equal.|
 |0|The two *bVariants* are equal. If both of them are dictionaries, they contain the same keys, regardless the order.|
 |>0|The value of *var1* is minor than the value of *var2*.|
-### mgos_bvar_is_null
-```c
-bool mgos_bvar_is_null(mgos_bvarc_t var);
-```
-Returns `true` if the *bVariant* is type-less (with no data-type defined), or `false` otherwise.
-
-|Parameter||
-|--|--|
-|var|A *bVariant*.|
 ### mgos_bvar_copy
 ```c
 bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var); 
 ```
-Copies a source *bVariant* into the destination one. Returns `true` if successfully copied, or `false` otherwise.
+Copies a source *bVariant* into the destination one. Returns `true` on success, or `false` otherwise.
 
 |Parameter||
 |--|--|
 |src_var|Source *bVariant*.|
 |dest_var|Destination *bVariant*.|
+### mgos_bvar_merge
+```c
+bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var);
+```
+Merges a source *bVariant* into the destination one. Returns `true` on success, or `false` otherwise. If the source is not a dictionary it is just copied into the destination (see [mgos_bvar_copy()](#mgos_bvar_copy) above), otherwise source dictionary keys are added to the destination one. 
+
+|Parameter||
+|--|--|
+|src_var|A source *bVariant*.|
+|dest_var|A destination *bVariant*.|
 ### mgos_bvar_length
 ```c
 int mgos_bvar_length(mgos_bvarc_t var); 

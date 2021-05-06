@@ -39,7 +39,7 @@ union mgos_bvar_value {
    #endif
 };
 
-struct mgos_bvariant {
+struct mg_bvar {
   enum mgos_bvar_type type; 
   union mgos_bvar_value value;
   size_t v_size;
@@ -299,7 +299,7 @@ bool mgos_bvar_is_null(mgos_bvarc_t var) {
 }
 
 mgos_bvar_t mgos_bvar_new() {
-  return (mgos_bvar_t)calloc(1, sizeof(struct mgos_bvariant));
+  return (mgos_bvar_t)calloc(1, sizeof(struct mg_bvar));
 }
 
 mgos_bvar_t mgos_bvar_new_integer(long value) {

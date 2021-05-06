@@ -44,9 +44,9 @@ enum mgos_bvar_type {
   MGOS_BVAR_TYPE_STR = 5
 };
 
-struct mgos_bvariant;
-typedef struct mgos_bvariant *mgos_bvar_t;
-typedef const struct mgos_bvariant *mgos_bvarc_t;
+struct mg_bvar;
+typedef struct mg_bvar *mgos_bvar_t;
+typedef const struct mg_bvar *mgos_bvarc_t;
 
 #define MGOS_BVAR_CONST(v) ((mgos_bvarc_t)v)
 

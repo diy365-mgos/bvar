@@ -298,7 +298,7 @@ bool mgos_bvar_is_null(mgos_bvarc_t var) {
   return (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_NULL);
 }
 
-mgos_bvar_t mgos_bvar_new() {
+static mgos_bvar_t mgos_bvar_new() {
   return (mgos_bvar_t)calloc(1, sizeof(struct mg_bvar));
 }
 

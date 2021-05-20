@@ -50,7 +50,7 @@ typedef const struct mg_bvar *mgos_bvarc_t;
 
 #define MGOS_BVAR_CONST(v) ((mgos_bvarc_t)v)
 
-mgos_bvar_t mgos_bvar_new();            
+static mgos_bvar_t mgos_bvar_new();            
 mgos_bvar_t mgos_bvar_new_integer(long value);
 mgos_bvar_t mgos_bvar_new_bool(bool value);
 mgos_bvar_t mgos_bvar_new_decimal(double value);

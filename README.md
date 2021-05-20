@@ -56,7 +56,7 @@ Returns the *bVariant* [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYP
 |var|A *bVariant*.|
 ### mgos_bvar_new
 ```c
-static mgos_bvar_t mgos_bvar_new();
+mgos_bvar_t mgos_bvar_new();
 ```
 Creates a type-less *bVariant* (with no data-type defined). Returns `NULL` if error. The returned instance must be deallocated using `mgos_bvar_free()`.
 ### mgos_bvar_new_integer | mgos_bvar_new_bool | mgos_bvar_new_decimal | mgos_bvar_new_str

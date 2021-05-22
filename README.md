@@ -11,7 +11,7 @@ This Mongoose OS library allows you to create variant bVariants which haven't da
 - **Observable value** - You can check it the value of a bVariant is changed or not.
 - **JSON support** - You can dynamically create a variant varibale from a JSON string or you can save it as JSON in a very easy way. Just include the [bVariant JSON library](https://github.com/diy365-mgos/bvar-json) into your project. 
 ## Get Started in C/C++
-### Example 1 - Create bVariants
+#### Example 1 - Create bVariants
 Include the library into your `mos.yml` file.
 ```yaml
 libs:
@@ -31,7 +31,7 @@ mgos_bvar_t s = mgos_bvar_new_str("Lorem Ipsum"); // char *s = "Lorem Ipsum";
 ```c
 #define MGOS_BVAR_CONST(v) ((mgos_bvarc_t)v)
 ```
-Macro to cast a bVariant to *const bVariant*. A constant bVariant can't be modified, it's readonly.
+Macro to cast a bVariant to constant bVariant. A constant bVariant is readonly ad can't be modified.
 ### enum mgos_bvar_type
 ```c
 enum mgos_bvar_type {

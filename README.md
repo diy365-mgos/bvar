@@ -18,7 +18,7 @@ libs:
 ```
 **C/C++ sample code**
 
-Create *bVariants*.
+Create bVariants.
 ```c
 #include "mgos_bvar.h"
 
@@ -139,7 +139,7 @@ The returned value depends on the input bVariant data-type. Please refer to deta
 ```c
 int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2);
 ```
-Compares two *bVariants*. Returns `INT_MAX` if error.
+Compares two bVariants. Returns `INT_MAX` if error.
 
 |Parameter||
 |--|--|
@@ -148,11 +148,11 @@ Compares two *bVariants*. Returns `INT_MAX` if error.
 
 **Remarks**
 
-Returns an integer value indicating the relationship between the compared *bVariants*:
+Returns an integer value indicating the relationship between the compared bVariants:
 |Return value||
 |--|--|
-|<0|The value of *var1* is minor than the value of *var2*. If one or both of the *bVariants* are dictionaries, they are not equal.|
-|0|The two *bVariants* are equal. If both of them are dictionaries, they contain the same keys, regardless the order.|
+|<0|The value of *var1* is minor than the value of *var2*. If one or both of the bVariants are dictionaries, they are not equal.|
+|0|The two bVariants are equal. If both of them are dictionaries, they contain the same keys, regardless the order.|
 |>0|The value of *var1* is minor than the value of *var2*.|
 ### mgos_bvar_copy
 ```c

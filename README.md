@@ -16,7 +16,7 @@ Include the library in your `mos.yml` file.
 libs:
   - origin: https://github.com/diy365-mgos/bvar
 ```
-#### Example - Create bVariants
+#### Example 1 - Create bVariants
 ```c
 #include "mgos_bvar.h"
 

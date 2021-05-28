@@ -234,7 +234,7 @@ void mg_bvar_json_walk_cb(void *callback_data,
   struct mg_bvar_json_walk_cb_arg *arg = (struct mg_bvar_json_walk_cb_arg *)callback_data;
   if (!arg || (arg->ret != 0)) return;
   
-  mgos_bvar_t new_item;
+  mgos_bvar_t new_item = NULL;
   if (token->type == JSON_TYPE_STRING || token->type == JSON_TYPE_NUMBER ||
       token->type == JSON_TYPE_FALSE  || token->type == JSON_TYPE_TRUE ||
       token->type == JSON_TYPE_NULL   || token->type == JSON_TYPE_OBJECT_START) {

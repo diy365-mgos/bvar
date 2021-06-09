@@ -330,6 +330,13 @@ mgos_bvar_t mgos_bvar_new_str(const char *value) {
   return var;
 }
 
+mgos_bvar_t mgos_bvar_new_nstr(const char *value, int value_len) {
+  mgos_bvar_t var = mgos_bvar_new();
+  mgos_bvar_set_nstr(var, value, value_len);
+  mgos_bvar_set_unchanged(var);
+  return var;
+}
+
 enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var) {
   return (var ? var->type : MGOS_BVAR_TYPE_NULL);
 }

@@ -69,6 +69,16 @@ Creates and initializes a bVariant. Returns `NULL` if error. Invoking `mgos_bvar
 |Parameter||
 |--|--|
 |value|Value to be set.|
+### mgos_bvar_new_nstr
+```c       
+mgos_bvar_t mgos_bvar_new_nstr(const char *value, int value_len);
+```
+Creates and initializes a bVariant value to the provided string. This is a specialized version of `mgos_bvar_new_str()`. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL, <any_value>)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free`.
+
+|Parameter||
+|--|--|
+|value|Value to be set.|
+|value_len|Maximum number of characters to set. Ignored if `value` parameter is `NULL`.|
 ### mgos_bvar_set_null
 ```c 
 void mgos_bvar_set_null(mgos_bvar_t var);
@@ -104,7 +114,7 @@ Sets the value of a bVariant. Invoking `mgos_bvar_set_str(var, NULL)` is equival
 ```c 
 void mgos_bvar_set_nstr(mgos_bvar_t var, const char *value, size_t value_len);
 ```
-Sets a bVariant value to the provided string. This is a specialized version of `mgos_bvar_set_str()` Invoking `mgos_bvar_set_nstr(var, NULL, <any_value>)` is equivalent to `mgos_bvar_set_null(var)`.
+Sets a bVariant value to the provided string. This is a specialized version of `mgos_bvar_set_str()`. Invoking `mgos_bvar_set_nstr(var, NULL, <any_value>)` is equivalent to `mgos_bvar_set_null(var)`.
 
 |Parameter||
 |--|--|

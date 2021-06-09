@@ -55,6 +55,7 @@ mgos_bvar_t mgos_bvar_new_integer(long value);
 mgos_bvar_t mgos_bvar_new_bool(bool value);
 mgos_bvar_t mgos_bvar_new_decimal(double value);
 mgos_bvar_t mgos_bvar_new_str(const char *value);
+mgos_bvar_t mgos_bvar_new_nstr(const char *value, int value_len);
 
 void mgos_bvar_set_null(mgos_bvar_t var);                                 
 void mgos_bvar_set_integer(mgos_bvar_t var, long value);

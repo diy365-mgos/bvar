@@ -611,11 +611,11 @@ int json_printf_bvar(struct json_out *out, va_list *ap) {
   return len;
 }
 
-mgos_bvar_t mgos_bvar_json_scanf(const char *json) {
+mgos_bvar_t mgos_bvar_json_bscanf(const char *json, int json_len) {
   mgos_bvar_t var = NULL;
   if (json) {
     struct mg_bvar_json_walk_cb_arg arg = { .var = NULL, .ret = 0 };
-    if ((json_walk(json, strlen(json), mg_bvar_json_walk_cb, &arg) > 0) && (arg.ret != -1)) {
+    if ((json_walk(json, json_len, mg_bvar_json_walk_cb, &arg) > 0) && (arg.ret != -1)) {
       #ifdef MGOS_BVAR_HAVE_DIC
       var = mg_bvar_dic_get_root(arg.var);
       #else
@@ -624,9 +624,13 @@ mgos_bvar_t mgos_bvar_json_scanf(const char *json) {
     } else {
       mgos_bvar_free(arg.var);
     }
+    mgos_bvar_set_unchanged(var);
   }
-  mgos_bvar_set_unchanged(var);
   return var;
+}
+
+mgos_bvar_t mgos_bvar_json_scanf(const char *json) {
+  return mgos_bvar_json_bscanf(json, (json ? strlen(json): 0));
 } 
 
 #endif // MGOS_BVAR_HAVE_JSON

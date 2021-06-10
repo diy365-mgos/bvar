@@ -412,9 +412,10 @@ enum mgos_bvar_cmp_res mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
           (var1->value.b > var2->value.b ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
       break;
     case MGOS_BVAR_TYPE_STR:
-      if (t2 == MGOS_BVAR_TYPE_STR)
+      if (t2 == MGOS_BVAR_TYPE_STR) {
         int cmp = strcmp(var1->value.s, var2->value.s);
         return (cmp < 0 ? MGOS_BVAR_CMP_RES_MINOR : (cmp > 0 ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      }
       break;
     case MGOS_BVAR_TYPE_NULL:
       if (t2 == MGOS_BVAR_TYPE_NULL)

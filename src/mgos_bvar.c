@@ -460,7 +460,7 @@ bool mg_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var, bool del_unmatch) 
 }
 
 bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
-  return mg_bvar_copy(src_var, dest_var, true)
+  return mg_bvar_copy(src_var, dest_var, true);
 }
 
 bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {

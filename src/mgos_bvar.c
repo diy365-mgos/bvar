@@ -397,6 +397,7 @@ enum mgos_bvar_cmp_res mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
       else if (t2 == MGOS_BVAR_TYPE_DECIMAL)
         return (var1->value.l < var2->value.d ? MGOS_BVAR_CMP_RES_MINOR :
           (var1->value.l > var2->value.d ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      break;
     case MGOS_BVAR_TYPE_DECIMAL:
       if (t2 == MGOS_BVAR_TYPE_DECIMAL)
         return (var1->value.d < var2->value.d ? MGOS_BVAR_CMP_RES_MINOR :
@@ -404,17 +405,21 @@ enum mgos_bvar_cmp_res mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
       else if (t2 == MGOS_BVAR_TYPE_INTEGER)
         return (var1->value.d < var2->value.l ? MGOS_BVAR_CMP_RES_MINOR :
           (var1->value.d > var2->value.l ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      break;
     case MGOS_BVAR_TYPE_BOOL:
       if (t2 == MGOS_BVAR_TYPE_BOOL)
         return (var1->value.b < var2->value.b ? MGOS_BVAR_CMP_RES_MINOR :
           (var1->value.b > var2->value.b ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      break;
     case MGOS_BVAR_TYPE_STR:
       if (t2 == MGOS_BVAR_TYPE_STR)
         int cmp = strcmp(var1->value.s, var2->value.s);
         return (cmp < 0 ? MGOS_BVAR_CMP_RES_MINOR : (cmp > 0 ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      break;
     case MGOS_BVAR_TYPE_NULL:
       if (t2 == MGOS_BVAR_TYPE_NULL)
         return MGOS_BVAR_CMP_RES_EQUAL;
+      break;
   };
 
   return MGOS_BVAR_CMP_RES_NOT_EQUAL;

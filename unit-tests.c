@@ -536,7 +536,7 @@ int main()
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
   mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(90.2));
   ASSERT(mgos_bvar_length(v1) == 3);
-  mgos_bvar_remove_keys(v1);
+  mgos_bvar_remove_keys(v1, true);
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
   
@@ -597,13 +597,13 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 3);
   ASSERT(mgos_bvar_has_key(v1, "Age"));
   ASSERT(!mgos_bvar_has_key(v1, "Surname"));
-  mgos_bvar_remove_key(v1, "Age");    
+  mgos_bvar_remove_key(v1, "Age", true);    
   ASSERT(mgos_bvar_length(v1) == 2);
   ASSERT(!mgos_bvar_has_key(v1, "Age"));
-  mgos_bvar_remove_key(v1, "Weigth");
+  mgos_bvar_remove_key(v1, "Weigth", true);
   ASSERT(mgos_bvar_length(v1) == 1);
   ASSERT(!mgos_bvar_has_key(v1, "Weigth"));
-  mgos_bvar_remove_key(v1, "Name");
+  mgos_bvar_remove_key(v1, "Name", true);
   ASSERT(mgos_bvar_length(v1) == 0);
   ASSERT(!mgos_bvar_has_key(v1, "Name"));
   mgos_bvar_free(v1);
@@ -706,7 +706,7 @@ int main()
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_dic();
-  mgos_bvar_remove_keys(v1);
+  mgos_bvar_remove_keys(v1, true);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
   
@@ -714,7 +714,7 @@ int main()
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_set_unchanged(v1);
   ASSERT(!mgos_bvar_is_changed(v1));
-  mgos_bvar_remove_keys(v1);
+  mgos_bvar_remove_keys(v1, true);
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
  
@@ -735,7 +735,7 @@ int main()
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_set_unchanged(v1);
-  mgos_bvar_remove_key(v1, "Name");
+  mgos_bvar_remove_key(v1, "Name", true);
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
   

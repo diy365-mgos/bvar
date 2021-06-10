@@ -78,7 +78,7 @@ mgos_bvar_t mg_bvar_dic_get_parent(mgos_bvar_t var, bool root) {
 void mg_bvar_close(mgos_bvar_t var) {
   if (var) {
     #ifdef MGOS_BVAR_HAVE_DIC
-    if (mgos_bvar_is_dic(var)) mgos_bvar_remove_keys(var);
+    if (mgos_bvar_is_dic(var)) mgos_bvar_remove_keys(var, true);
     #endif
     if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) {
       free(var->value.s);
@@ -110,7 +110,7 @@ void mg_bvar_set_changed(mgos_bvar_t var) {
 mgos_bvar_t mg_bvar_dic_ensure(mgos_bvar_t var, bool clear) {
   if (var) {
     if (mgos_bvar_is_dic(var)) {
-      if (clear) mgos_bvar_remove_keys(var);
+      if (clear) mgos_bvar_remove_keys(var, true);
     } else {
       mg_bvar_close(var);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_DIC);
@@ -397,7 +397,7 @@ void mgos_bvar_set_null(mgos_bvar_t var) {
   if (var && (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_NULL)) {
     #ifdef MGOS_BVAR_HAVE_DIC
     if (mgos_bvar_is_dic(var)) {
-      mgos_bvar_remove_keys(var);
+      mgos_bvar_remove_keys(var, true);
     }
     #endif
     mg_bvar_close(var);

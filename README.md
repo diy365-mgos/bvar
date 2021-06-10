@@ -161,10 +161,12 @@ Returns a value indicating the relationship between the compared bVariants:
 |--|--|
 |MGOS_BVAR_CMP_RES_NOT_EQUAL|`var1` is not equal to `var2`.|
 |MGOS_BVAR_CMP_RES_EQUAL|`var1` is equal to `var2`.|
-|MGOS_BVAR_CMP_RES_MINOR|`var1` is minor than `var2` and they are not bVariantDictionaries.|
-|MGOS_BVAR_CMP_RES_MAJOR|`var1` is major than `var2` and they are not bVariantDictionaries.|
-|`MGOS_BVAR_CMP_RES_MINOR | MGOS_BVAR_CMP_RES_EQUAL`|Comparing two bVariantDictionaries, an exact copy of `var1` is contained into `var2`.|
-|`MGOS_BVAR_CMP_RES_MAJOR | MGOS_BVAR_CMP_RES_EQUAL`|Comparing two bVariantDictionaries, , `var1` contains an exact copy of `var2`.|
+|MGOS_BVAR_CMP_RES_MINOR|`var1` is minor than `var2` and both are not bVariantDictionaries.|
+|MGOS_BVAR_CMP_RES_MAJOR|`var1` is major than `var2` and both are not bVariantDictionaries.|
+
+In case `var1` and `var2` are both bVariantDictionaries these two combinations could be returned as well:
+- `(MGOS_BVAR_CMP_RES_MINOR|MGOS_BVAR_CMP_RES_EQUAL)`: in case an exact copy of `var1` is contained into `var2`. 
+- `(MGOS_BVAR_CMP_RES_MAJOR|MGOS_BVAR_CMP_RES_EQUAL)`: in case `var1` contains an exact copy of `var2`.
 ### mgos_bvar_copy
 ```c
 bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var); 

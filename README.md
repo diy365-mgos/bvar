@@ -145,9 +145,9 @@ The returned value depends on the input bVariant data-type. Please refer to deta
 |**mgos_bvar_get_str()**|Returns `NULL`|Returns `NULL`|Returns `NULL`|Returns the string value|Returns `NULL`|
 ### mgos_bvar_cmp
 ```c
-int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2);
+enum mgos_bvar_cmp_res mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2)
 ```
-Compares two bVariants. Returns `INT_MAX` if error.
+Compares two bVariants.
 
 |Parameter||
 |--|--|
@@ -156,12 +156,15 @@ Compares two bVariants. Returns `INT_MAX` if error.
 
 **Remarks**
 
-Returns an integer value indicating the relationship between the compared bVariants:
-|Return value||
+Returns a value indicating the relationship between the compared bVariants:
+|Returned value||
 |--|--|
-|<0|The value of *var1* is minor than the value of *var2*. If one or both of the bVariants are bVariantDictionaries, they are not equal.|
-|0|The two bVariants are equal. If both of them are bVariantDictionaries, they contain the same keys, regardless the order.|
-|>0|The value of *var1* is minor than the value of *var2*.|
+|MGOS_BVAR_CMP_RES_NOT_EQUAL|`var1` is not equal to `var2`.|
+|MGOS_BVAR_CMP_RES_EQUAL|`var1` is equal to `var2`.|
+|MGOS_BVAR_CMP_RES_MINOR|`var1` is minor than `var2` and they are not bVariantDictionaries.|
+|MGOS_BVAR_CMP_RES_MAJOR|`var1` is major than `var2` and they are not bVariantDictionaries.|
+|`MGOS_BVAR_CMP_RES_MINOR | MGOS_BVAR_CMP_RES_EQUAL`|Comparing two bVariantDictionaries, an exact copy of `var1` is contained into `var2`.|
+|`MGOS_BVAR_CMP_RES_MAJOR | MGOS_BVAR_CMP_RES_EQUAL`|Comparing two bVariantDictionaries, , `var1` contains an exact copy of `var2`.|
 ### mgos_bvar_copy
 ```c
 bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var); 

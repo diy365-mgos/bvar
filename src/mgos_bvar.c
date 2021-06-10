@@ -176,21 +176,44 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
   return NULL;
 }
 
-bool mg_bvar_dic_are_equal(mgos_bvarc_t var1, mgos_bvarc_t var2) {
-  if (!mgos_bvar_is_dic(var1) || !mgos_bvar_is_dic(var2)) return false;
-  if (mgos_bvar_length(var1) != mgos_bvar_length(var2)) return false;
+/* mg_bvar_dic_cmp - compares 2 dictinaries 
+ * Returns:
+     - MGOS_BVAR_CMP_RES_EQUAL: the two dictionaries are equal
+     - MGOS_BVAR_CMP_RES_NOT_EQUAL: the two dictionaries are not equal
+     - (MGOS_BVAR_CMP_RES_MINOR | MGOS_BVAR_CMP_RES_EQUAL): var1 is contained, as exact copy, into var2 (var1 < var2)
+     - (MGOS_BVAR_CMP_RES_MAJOR | MGOS_BVAR_CMP_RES_EQUAL): var1 contains an exact copy of var2 (var1 > var2)
+*/
+enum mgos_bvar_cmp_res mg_bvar_dic_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
+  if (!mgos_bvar_is_dic(var1) || !mgos_bvar_is_dic(var2)) return MGOS_BVAR_CMP_RES_NOT_EQUAL;
 
-  mgos_bvar_t var = var1->value.dic_head.var;
+  int var1_len = mgos_bvar_length(var1);
+  int var2_len = mgos_bvar_length(var2);
+
+  mgos_bvarc_t dsmall = (var1_len > var2_len ? var2 : var1);
+  mgos_bvarc_t dbig = (dsmall ==  var1 ? var2 : var1);
+ 
+  mgos_bvar_t var = dsmall->value.dic_head.var;
   while(var) {
-    mgos_bvar_t value = mg_bvar_dic_get((mgos_bvar_t)var2, var->key->name, strlen(var->key->name), false);
-    if (!value) return false;
-    if (mgos_bvar_cmp(value, var) != 0) return false;
+    mgos_bvar_t value = mg_bvar_dic_get((mgos_bvar_t)dbig, var->key->name, strlen(var->key->name), false);
+    if (!value)
+      return MGOS_BVAR_CMP_RES_NOT_EQUAL; // key not found, the twp dictionaries are not equal
+    if (mgos_bvar_cmp(value, var) != MGOS_BVAR_CMP_RES_EQUAL)
+      return MGOS_BVAR_CMP_RES_NOT_EQUAL; // the two keys are not equal, so the two dictionaries are not equal
     var = var->key->next_var;
   }
 
-  return true;
+  // all keys of the smaller dictionary are euqal to the ones in the
+  // bigger dictionary
+
+  if (var1_len == var2_len)
+    return MGOS_BVAR_CMP_RES_EQUAL; // all keys are euqal, so the two dictionaries are equal
+  else if (var1_len < var2_len)
+    return (MGOS_BVAR_CMP_RES_MINOR | MGOS_BVAR_CMP_RES_EQUAL); // an exact copy of var1 is contained into the bigger var2 (var1 < var2)
+  else
+    return (MGOS_BVAR_CMP_RES_MAJOR | MGOS_BVAR_CMP_RES_EQUAL); // an exact copy of var2 is contained into the bigger var1 (var1 > var2)
 }
 
+bool mg_bvar_copy(mgos_bvarc_t, mgos_bvar_t, bool);
 bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
   if (!mgos_bvar_is_dic(src)) return false;
   if (!mg_bvar_dic_ensure(dest, false)) return false;
@@ -200,8 +223,8 @@ bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
   mgos_bvar_t var = src->value.dic_head.var;
   while(var) {
     value = mg_bvar_dic_get(dest, var->key->name, strlen(var->key->name), true);
-    if (mgos_bvar_cmp(value, var) != 0) {
-      mgos_bvar_copy(var, value);
+    if (mgos_bvar_cmp(value, var) != MGOS_BVAR_CMP_RES_EQUAL) {
+      mg_bvar_copy(var, value, del_unmatch);
     }
     var = var->key->next_var;
   }
@@ -354,57 +377,56 @@ void mgos_bvar_set_null(mgos_bvar_t var) {
   }
 }
 
-int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
-  if (var1 == NULL && var2 == NULL) return 0; // both NULL
-  if (var1 == NULL && var2 != NULL) return -1; // var1 < var2
-  if (var1 != NULL && var2 == NULL) return 1; // var1 > var2
-  if (var1 == var2) return 0; // comparing the same instance
-  
+enum mgos_bvar_cmp_res mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
+  if (var1 == var2) return MGOS_BVAR_CMP_RES_EQUAL; // comparing the same instance (or both NULL)
+  if ((var1 == NULL && var2 != NULL) || (var1 != NULL && var2 == NULL)) return MGOS_BVAR_CMP_RES_NOT_EQUAL;
+    
   #ifdef MGOS_BVAR_HAVE_DIC
-  if(mgos_bvar_is_dic(var1) || mgos_bvar_is_dic(var2)) {
-    return (mg_bvar_dic_are_equal(var1, var2) ? 0 : -1);
+  if(mgos_bvar_is_dic(var1) && mgos_bvar_is_dic(var2)) {
+    return mg_bvar_dic_cmp(var1, var2);
   }
   #endif
 
   enum mgos_bvar_type t1 = mgos_bvar_get_type(var1);
   enum mgos_bvar_type t2 = mgos_bvar_get_type(var2);
-  
-  if(t1 != t2) {
-    if ((t1 != MGOS_BVAR_TYPE_INTEGER && t1 != MGOS_BVAR_TYPE_DECIMAL) ||
-        (t1 != MGOS_BVAR_TYPE_INTEGER && t1 != MGOS_BVAR_TYPE_DECIMAL)) {
-      return INT_MAX;       
-    }
-  }
-  
   switch(t1) {
     case MGOS_BVAR_TYPE_INTEGER:
       if (t2 == MGOS_BVAR_TYPE_INTEGER)
-        return (var1->value.l < var2->value.l ? -1 : (var1->value.l > var2->value.l ? 1 : 0));
-      else
-        return (var1->value.l < var2->value.d ? -1 : (var1->value.l > var2->value.d ? 1 : 0));
+        return (var1->value.l < var2->value.l ? MGOS_BVAR_CMP_RES_MINOR :
+          (var1->value.l > var2->value.l ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      else if (t2 == MGOS_BVAR_TYPE_DECIMAL)
+        return (var1->value.l < var2->value.d ? MGOS_BVAR_CMP_RES_MINOR :
+          (var1->value.l > var2->value.d ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
     case MGOS_BVAR_TYPE_DECIMAL:
       if (t2 == MGOS_BVAR_TYPE_DECIMAL)
-        return (var1->value.d < var2->value.d ? -1 : (var1->value.d > var2->value.d ? 1 : 0));
-      else
-        return (var1->value.d < var2->value.l ? -1 : (var1->value.d > var2->value.l ? 1 : 0));
+        return (var1->value.d < var2->value.d ? MGOS_BVAR_CMP_RES_MINOR :
+          (var1->value.d > var2->value.d ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
+      else if (t2 == MGOS_BVAR_TYPE_INTEGER)
+        return (var1->value.d < var2->value.l ? MGOS_BVAR_CMP_RES_MINOR :
+          (var1->value.d > var2->value.l ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
     case MGOS_BVAR_TYPE_BOOL:
-      return (var1->value.b < var2->value.b ? -1 : (var1->value.b > var2->value.b ? 1 : 0));
+      if (t2 == MGOS_BVAR_TYPE_BOOL)
+        return (var1->value.b < var2->value.b ? MGOS_BVAR_CMP_RES_MINOR :
+          (var1->value.b > var2->value.b ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
     case MGOS_BVAR_TYPE_STR:
-      return strcmp(var1->value.s, var2->value.s);
+      if (t2 == MGOS_BVAR_TYPE_STR)
+        int cmp = strcmp(var1->value.s, var2->value.s);
+        return (cmp < 0 ? MGOS_BVAR_CMP_RES_MINOR : (cmp > 0 ? MGOS_BVAR_CMP_RES_MAJOR : MGOS_BVAR_CMP_RES_EQUAL));
     case MGOS_BVAR_TYPE_NULL:
-      return 0;
+      if (t2 == MGOS_BVAR_TYPE_NULL)
+        return MGOS_BVAR_CMP_RES_EQUAL;
   };
 
-  return INT_MAX; //error
+  return MGOS_BVAR_CMP_RES_NOT_EQUAL;
 }
 
-bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
+bool mg_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var, bool del_unmatch) {
   if (!src_var || !dest_var) return false;
   if (src_var == dest_var) return true; // coping the same instance
   
   #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(src_var)) {
-    return mg_bvar_dic_copy(src_var, dest_var, true);
+    return mg_bvar_dic_copy(src_var, dest_var, del_unmatch);
   }
   #endif
 
@@ -429,6 +451,10 @@ bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
   };
 
   return true;
+}
+
+bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
+  return mg_bvar_copy(src_var, dest_var, true)
 }
 
 bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {

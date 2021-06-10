@@ -44,6 +44,13 @@ enum mgos_bvar_type {
   MGOS_BVAR_TYPE_STR = 5
 };
 
+enum mgos_bvar_cmp_res {
+  MGOS_BVAR_CMP_RES_NOT_EQUAL = 0,  // 000
+  MGOS_BVAR_CMP_RES_EQUAL = 1,      // 001
+  MGOS_BVAR_CMP_RES_MINOR = 2,      // 010
+  MGOS_BVAR_CMP_RES_MAJOR = 4       // 100
+};
+
 struct mg_bvar;
 typedef struct mg_bvar *mgos_bvar_t;
 typedef const struct mg_bvar *mgos_bvarc_t;
@@ -76,7 +83,7 @@ bool mgos_bvar_is_null(mgos_bvarc_t var);
 bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var);
 bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var);
 
-int mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2);
+enum mgos_bvar_cmp_res mgos_bvar_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2);
 
 int mgos_bvar_length(mgos_bvarc_t var);
 

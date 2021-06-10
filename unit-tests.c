@@ -55,7 +55,7 @@ int main()
   ASSERT(mgos_bvar_is_null(v1));
   ASSERT(!mgos_bvar_is_changed(v1));
   ASSERT(mgos_bvar_is_null(v2));
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
@@ -180,106 +180,106 @@ int main()
   
   v1 = mgos_bvar_new_bool(false);
   v2 = mgos_bvar_new_integer(10);
-  ASSERT(mgos_bvar_cmp(v1, v2) == INT_MAX);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_decimal(10.00);
   v2 = mgos_bvar_new_integer(10);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_set_decimal(v2, 10.1);
-  ASSERT(mgos_bvar_cmp(v1, v2) < 0);
-  ASSERT(mgos_bvar_cmp(v2, v1) > 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new();
   v2 = mgos_bvar_new();
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
-  ASSERT(mgos_bvar_cmp(v1, NULL) > 0);
-  ASSERT(mgos_bvar_cmp(NULL, v2) < 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
+  ASSERT(mgos_bvar_cmp(v1, NULL) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  ASSERT(mgos_bvar_cmp(NULL, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_str("A");
   v2 = mgos_bvar_new_str("B");
-  ASSERT(mgos_bvar_cmp(v1, v2) < 0);
-  ASSERT(mgos_bvar_cmp(v2, v1) > 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_str(v2, "A");
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_integer(10);
   v2 = mgos_bvar_new_integer(20);
-  ASSERT(mgos_bvar_cmp(v1, v2) < 0);
-  ASSERT(mgos_bvar_cmp(v2, v1) > 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) < MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) > MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_integer(v2, 10);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_decimal(10.22);
   v2 = mgos_bvar_new_decimal(20.22);
-  ASSERT(mgos_bvar_cmp(v1, v2) < 0);
-  ASSERT(mgos_bvar_cmp(v2, v1) > 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) < MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) > MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_decimal(v2, 10.22);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_bool(false);
   v2 = mgos_bvar_new_bool(true);
-  ASSERT(mgos_bvar_cmp(v1, v2) < 0);
-  ASSERT(mgos_bvar_cmp(v2, v1) > 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) < MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) > MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_bool(v2, false);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_str("Marco");
   v2 = mgos_bvar_new();
   mgos_bvar_copy(v1, v2);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_integer(124);
   v2 = mgos_bvar_new();
   mgos_bvar_copy(v1, v2);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_decimal(123.88);
   v2 = mgos_bvar_new();
   mgos_bvar_copy(v1, v2);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_bool(true);
   v2 = mgos_bvar_new();
   mgos_bvar_copy(v1, v2);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_integer(1001);
   v2 = mgos_bvar_new_integer(1001);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new_decimal(1001);
   v2 = mgos_bvar_new_decimal(1001.00);
-  ASSERT(mgos_bvar_cmp(v1, v2) == 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
  
   v1 = mgos_bvar_new_bool(true);
   v2 = mgos_bvar_new_bool(false);
-  ASSERT(mgos_bvar_cmp(v1, v2) != 0);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   ASSERT(mgos_bvar_get_bool(v1) == true);
   ASSERT(mgos_bvar_get_bool(v2) == false);
   mgos_bvar_free(v1);
@@ -632,7 +632,7 @@ int main()
   {
     mgos_bvarc_t v = NULL; const char *k = NULL; int i = 0;
     for (i = 0; mgos_bvarc_get_next_key(&e1, &v, &k); ++i) {
-      ASSERT(mgos_bvar_cmp(mgos_bvarc_get_key(v1, k), v) == 0);
+      ASSERT(mgos_bvar_cmp(mgos_bvarc_get_key(v1, k), v) == MGOS_BVAR_CMP_RES_EQUAL);
     }
     ASSERT(i == mgos_bvar_length(v1));
   }
@@ -648,7 +648,7 @@ int main()
   {
     mgos_bvarc_t v = NULL; const char *k = NULL; int i = 0;
     for (i = 0; mgos_bvarc_get_next_key(&e1, &v, &k); ++i) {
-      ASSERT(mgos_bvar_cmp(mgos_bvarc_get_key(v1, k), v) == 0);
+      ASSERT(mgos_bvar_cmp(mgos_bvarc_get_key(v1, k), v) == MGOS_BVAR_CMP_RES_EQUAL);
     }
     ASSERT(i == mgos_bvar_length(v1));
   }

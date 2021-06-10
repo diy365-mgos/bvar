@@ -176,7 +176,7 @@ int main()
   ASSERT(mgos_bvar_is_null(v1));
   mgos_bvar_free(v1);
   
-  ASSERT(mgos_bvar_cmp(NULL, NULL) == 0);
+  ASSERT(mgos_bvar_cmp(NULL, NULL) == MGOS_BVAR_CMP_RES_EQUAL);
   
   v1 = mgos_bvar_new_bool(false);
   v2 = mgos_bvar_new_integer(10);
@@ -212,8 +212,8 @@ int main()
   
   v1 = mgos_bvar_new_integer(10);
   v2 = mgos_bvar_new_integer(20);
-  ASSERT(mgos_bvar_cmp(v1, v2) < MGOS_BVAR_CMP_RES_MINOR);
-  ASSERT(mgos_bvar_cmp(v2, v1) > MGOS_BVAR_CMP_RES_MAJOR);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_integer(v2, 10);
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
@@ -221,8 +221,8 @@ int main()
   
   v1 = mgos_bvar_new_decimal(10.22);
   v2 = mgos_bvar_new_decimal(20.22);
-  ASSERT(mgos_bvar_cmp(v1, v2) < MGOS_BVAR_CMP_RES_MINOR);
-  ASSERT(mgos_bvar_cmp(v2, v1) > MGOS_BVAR_CMP_RES_MAJOR);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_decimal(v2, 10.22);
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
@@ -230,8 +230,8 @@ int main()
   
   v1 = mgos_bvar_new_bool(false);
   v2 = mgos_bvar_new_bool(true);
-  ASSERT(mgos_bvar_cmp(v1, v2) < MGOS_BVAR_CMP_RES_MINOR);
-  ASSERT(mgos_bvar_cmp(v2, v1) > MGOS_BVAR_CMP_RES_MAJOR);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MINOR);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_set_bool(v2, false);
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
@@ -279,7 +279,7 @@ int main()
  
   v1 = mgos_bvar_new_bool(true);
   v2 = mgos_bvar_new_bool(false);
-  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MAJOR);
   ASSERT(mgos_bvar_get_bool(v1) == true);
   ASSERT(mgos_bvar_get_bool(v2) == false);
   mgos_bvar_free(v1);
@@ -540,6 +540,24 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
   
+  v1 = mgos_bvar_new_dic();
+  mgos_bvar_t v544 = mgos_bvar_new_str("Mark");
+  mgos_bvar_t v545 = mgos_bvar_new_integer(46);
+  mgos_bvar_t v546 = mgos_bvar_new_decimal(90.2);
+  mgos_bvar_add_key(v1, "Name", v544);
+  mgos_bvar_add_key(v1, "Age", v545);
+  mgos_bvar_add_key(v1, "Weigth", v546);
+  ASSERT(mgos_bvar_length(v1) == 3);
+  mgos_bvar_remove_keys(v1, false);
+  ASSERT(mgos_bvar_length(v1) == 0);
+  mgos_bvar_free(v1);
+  ASSERT(strcmp(mgos_bvar_get_str(v544),"Mark") == 0);
+  ASSERT(mgos_bvar_get_integer(v545) == 46);
+  ASSERT(mgos_bvar_get_decimal(v546) == 90.2);
+  mgos_bvar_free(v544);
+  mgos_bvar_free(v545);
+  mgos_bvar_free(v546);
+  
   v1 = mgos_bvar_new();
   ASSERT(!mgos_bvar_is_dic(v1));
   ASSERT(mgos_bvar_get_type(v1) == MGOS_BVAR_TYPE_NULL);
@@ -597,16 +615,31 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 3);
   ASSERT(mgos_bvar_has_key(v1, "Age"));
   ASSERT(!mgos_bvar_has_key(v1, "Surname"));
-  mgos_bvar_remove_key(v1, "Age", true);    
+  ASSERT(mgos_bvar_remove_key(v1, "Age", true) == NULL);    
   ASSERT(mgos_bvar_length(v1) == 2);
   ASSERT(!mgos_bvar_has_key(v1, "Age"));
-  mgos_bvar_remove_key(v1, "Weigth", true);
+  ASSERT(mgos_bvar_remove_key(v1, "Weigth", true) == NULL);
   ASSERT(mgos_bvar_length(v1) == 1);
   ASSERT(!mgos_bvar_has_key(v1, "Weigth"));
-  mgos_bvar_remove_key(v1, "Name", true);
+  ASSERT(mgos_bvar_remove_key(v1, "Name", true) == NULL);
   ASSERT(mgos_bvar_length(v1) == 0);
   ASSERT(!mgos_bvar_has_key(v1, "Name"));
+  ASSERT(mgos_bvar_remove_key(v1, "City", true) == NULL);
   mgos_bvar_free(v1);
+  
+  v1 = mgos_bvar_new();
+  mgos_bvar_t v630 = mgos_bvar_new_str("Mark");
+  mgos_bvar_t v631 = mgos_bvar_new_integer(46);
+  mgos_bvar_add_key(v1, "Name", v630);
+  mgos_bvar_add_key(v1, "Age", v631);
+  ASSERT(mgos_bvar_remove_key(v1, "City", false) == NULL);
+  ASSERT(mgos_bvar_remove_key(v1, "Name", false) == v630);
+  ASSERT(mgos_bvar_remove_key(v1, "Age", false) == v631);
+  mgos_bvar_free(v1);
+  ASSERT(strcmp(mgos_bvar_get_str(v630), "Mark") == 0);
+  ASSERT(mgos_bvar_get_integer(v631) == 46);
+  mgos_bvar_free(v630);
+  mgos_bvar_free(v631);
   
   v1 = mgos_bvar_new();
   ASSERT(!mgos_bvar_is_dic(v1));
@@ -622,6 +655,62 @@ int main()
   ASSERT(mgos_bvarc_get_next_key(&e1, NULL, NULL) == false);
   mgos_bvar_free(v1);
 
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
+  v2 = mgos_bvar_new_str("Mark");
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
+  mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(90.2));
+  v2 = mgos_bvar_new();
+  mgos_bvar_add_key(v2, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v2, "Age", mgos_bvar_new_integer(46));
+  mgos_bvar_add_key(v2, "Weigth", mgos_bvar_new_decimal(90.2));
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_EQUAL);
+  mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(70.22));
+  v2 = mgos_bvar_new();
+  mgos_bvar_add_key(v2, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v2, "Weigth", mgos_bvar_new_decimal(90.2));
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(70.22));
+  v2 = mgos_bvar_new();
+  mgos_bvar_add_key(v2, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v2, "Age", mgos_bvar_new_integer(46));
+  mgos_bvar_add_key(v2, "Weigth", mgos_bvar_new_decimal(90.2));
+  ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
+  mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(90.2));
+  v2 = mgos_bvar_new();
+  mgos_bvar_add_key(v2, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v2, "Age", mgos_bvar_new_integer(46));
+  mgos_bvar_add_key(v2, "Weigth", mgos_bvar_new_decimal(90.2));
+  ASSERT(mgos_bvar_cmp(v1, v2) == (MGOS_BVAR_CMP_RES_EQUAL|MGOS_BVAR_CMP_RES_MINOR));
+  ASSERT(mgos_bvar_cmp(v2, v1) == (MGOS_BVAR_CMP_RES_EQUAL|MGOS_BVAR_CMP_RES_MAJOR));
+  mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));

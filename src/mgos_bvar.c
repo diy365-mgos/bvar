@@ -748,7 +748,7 @@ bool mgos_bvar_is_dic(mgos_bvarc_t var) {
 void mgos_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
   if (mgos_bvar_is_dic(var)) {
     void (*del_func)(mgos_bvar_t);
-    del_func = (dispose ? mg_bvar_dic_rem_key : mgos_bvar_free);
+    del_func = (dispose ? mgos_bvar_free : mg_bvar_dic_rem_key);
     while (var->value.dic_head.var) {
       del_func(var->value.dic_head.var);
     }
@@ -757,7 +757,7 @@ void mgos_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
 
 mgos_bvar_t mgos_bvar_remove_key(mgos_bvar_t var, const char *key, bool dispose) {
   void (*del_func)(mgos_bvar_t);
-  del_func = (dispose ? mg_bvar_dic_rem_key : mgos_bvar_free);
+  del_func = (dispose ? mgos_bvar_free : mg_bvar_dic_rem_key);
   mgos_bvar_t v = mg_bvar_dic_get(var, key, (key ? strlen(key) : 0), false);
   if (v) del_func(v);
   return (dispose ? NULL : v);

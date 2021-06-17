@@ -90,7 +90,9 @@ int mgos_bvar_length(mgos_bvarc_t var);
 void mgos_bvar_set_unchanged(mgos_bvar_t var);
 bool mgos_bvar_is_changed(mgos_bvarc_t var);
 
-void mgos_bvar_free(mgos_bvar_t var);
+void mgos_bvar_clear(mgos_bvar_t var);
+
+bool mgos_bvar_free(mgos_bvar_t var);
 
 #ifdef __cplusplus
 }

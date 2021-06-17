@@ -23,6 +23,13 @@ struct mg_bvar_dic_key {
   mgos_bvar_t prev_var;
 };
 
+struct mg_bvar_dic_key_item {
+  mgos_bvar_t parent_dic;
+  struct mg_bvar_dic_key *key;
+  struct mg_bvar_dic_key_item *next_item;
+  struct mg_bvar_dic_key_item *prev_item;
+};
+
 struct mg_bvar_dic_head {
   mgos_bvar_t var;
   int count;
@@ -43,9 +50,9 @@ struct mg_bvar {
   enum mgos_bvar_type type; 
   union mgos_bvar_value value;
   size_t v_size;
-  char changed;
+  int changed;
   #ifdef MGOS_BVAR_HAVE_DIC
-  struct mg_bvar_dic_key *key;
+  struct mg_bvar_dic_key_item *key_items;
   #endif
 };
 
@@ -58,51 +65,105 @@ struct mg_bvar_json_walk_cb_arg {
 
 #ifdef MGOS_BVAR_HAVE_DIC
 
-mgos_bvar_t mg_bvar_dic_get_root(mgos_bvar_t var) {
-  if (!var) return NULL;
-  if (var->key) return mg_bvar_dic_get_root(var->key->prev_var);
-  return var;
+struct mg_bvar_dic_key_item *mg_bvar_dic_get_key_item(mgos_bvarc_t var, mgos_bvarc_t parent_dic) {
+  struct mg_bvar_dic_key_item *key_item = (var ? var->key_items : NULL);
+  while (key_item && key_item->parent_dic != parent_dic) { key_item = key_item->next_item; }
+  return key_item;
 }
 
-mgos_bvar_t mg_bvar_dic_get_parent(mgos_bvar_t var, bool root) {
-  if (!var) return NULL;
-  mgos_bvar_t p = (var->key ? var->key->prev_var : NULL);
-  while (p && !mgos_bvar_is_dic(p)) {
-    p = (p->key ? p->key->prev_var : NULL);
+bool mg_bvar_dic_is_parent(mgos_bvarc_t var, mgos_bvarc_t parent_dic) {
+  return (mg_bvar_dic_get_key_item(var, parent_dic) != NULL);
+}
+
+mgos_bvar_t mg_bvar_dic_get_root(mgos_bvar_t var) {
+  if (var) {
+    if (!var->key_items) return var; // root found
+    if (var->key_items && !var->key_items->next_item) {
+      return mg_bvar_dic_get_root(var->key_items->parent_dic);
+    }
   }
-  return p;
+  return NULL;
+}
+
+mgos_bvar_t mg_bvar_dic_get_parent(mgos_bvar_t var) {
+  if (var && var->key_items && !var->key_items->next_item) {
+    return var->key_items->parent_dic;
+  }
+  //the 'var' is NULL, or it has't a parent, or
+  // it belongs to two or more dictionaries and so
+  // it has't a single/unique parent.
+  return NULL; 
+}
+
+typedef bool (* mg_bvar_dic_walk_parents_t)(mgos_bvar_t parent, mgos_bvar_t child,
+                                            struct mg_bvar_dic_key_item *key_item);
+
+int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_func) {
+  int count = 0;
+  if (walk_func && var) {
+    struct mg_bvar_dic_key_item *key_item = var->key_items;
+    while (key_item) {    
+      ++count;
+      if (!walk_func(key_item->parent_dic, var, key_item)) break;
+      key_item = key_item->next_item;
+    }
+  }
+  return count;
 }
 
 #endif
 
+void mg_bvar_set_changed(mgos_bvar_t var) {
+  if (!var) return;
+  #ifdef MGOS_BVAR_HAVE_DIC
+  bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
+                       struct mg_bvar_dic_key_item *key_item) {
+    mg_bvar_set_changed(parent);
+    return true;
+	};
+  mg_bvar_dic_walk_parents(var, on_parent_found);
+  
+  if (mgos_bvar_is_dic(var)) {
+    ++var->changed;
+    return;
+  }
+  #endif
+  var->changed = 1;
+}
+
+void mg_bvar_remove_keys(mgos_bvar_t, bool);
 void mg_bvar_close(mgos_bvar_t var) {
   if (var) {
     #ifdef MGOS_BVAR_HAVE_DIC
-    if (mgos_bvar_is_dic(var)) mgos_bvar_remove_keys(var, true);
-    #endif
+    if (mgos_bvar_is_dic(var)) mg_bvar_remove_keys(var, true);
+    #endif    
+
     if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) {
+      if (var->value.s) mg_bvar_set_changed(var);
       free(var->value.s);
       var->value.s = NULL;
+    } else if (!mgos_bvar_is_changed(var)) {
+      // mark as changed (if needed)
+      for (int i=0; i < sizeof(union mgos_bvar_value); ++i) {
+        if (((char *)&var->value)[i] != 0) {
+          mg_bvar_set_changed(var);
+          break;
+        }
+      }
     }
+
+    // reset bVarinat value (to 0/NULL)
     memset(&var->value, 0, sizeof(union mgos_bvar_value));
     var->v_size = 0;
   }
 }
 
 mgos_bvar_t mg_bvar_set_type(mgos_bvar_t var, enum mgos_bvar_type t) {
-  if (var) var->type = t;
-  return var;
-}
-
-void mg_bvar_set_changed(mgos_bvar_t var) {
-  if (!var) return;
-  #ifdef MGOS_BVAR_HAVE_DIC
-  mgos_bvar_t parent = mg_bvar_dic_get_parent(var, false);
-  if (parent != var) { 
-    mg_bvar_set_changed(parent);
+  if (var && var->type != t) {
+    var->type = t;
+    mg_bvar_set_changed(var);
   }
-  #endif
-  var->changed = 1;
+  return var;
 }
 
 #ifdef MGOS_BVAR_HAVE_DIC
@@ -110,7 +171,7 @@ void mg_bvar_set_changed(mgos_bvar_t var) {
 mgos_bvar_t mg_bvar_dic_ensure(mgos_bvar_t var, bool clear) {
   if (var) {
     if (mgos_bvar_is_dic(var)) {
-      if (clear) mgos_bvar_remove_keys(var, true);
+      if (clear) mg_bvar_remove_keys(var, true);
     } else {
       mg_bvar_close(var);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_DIC);
@@ -120,39 +181,57 @@ mgos_bvar_t mg_bvar_dic_ensure(mgos_bvar_t var, bool clear) {
 }
 
 bool mg_bvar_dic_add(mgos_bvar_t root, const char *key_name, size_t key_len, mgos_bvar_t var) {
-  if (!mg_bvar_dic_ensure(root, false) || !var || var->key || !key_name) return false;
+  if (!mg_bvar_dic_ensure(root, false) || !var || !key_name) return false;
 
   mgos_bvar_t last_var = root;
   mgos_bvar_t v = root->value.dic_head.var; 
-  while (v && v->key) {
+  struct mg_bvar_dic_key_item *last_key_item = NULL;
+  while (v) {
+    last_key_item = mg_bvar_dic_get_key_item(v, root);
     last_var = v;
-    v = v->key->next_var;
+    v = last_key_item->key->next_var;
   };
- 
+  
   // init the new key
-  var->key = calloc(1, sizeof(struct mg_bvar_dic_key));
-  if (key_len == -1) {
-    var->key->name = strdup(key_name);
+  struct mg_bvar_dic_key_item *new_key_item = calloc(1, sizeof(struct mg_bvar_dic_key_item));
+  new_key_item->parent_dic = root;
+  if (!var->key_items) {
+    var->key_items = new_key_item;
   } else {
-    var->key->name = malloc(key_len + 1);
-    strncpy((char *)var->key->name, key_name, key_len);
-    ((char *)var->key->name)[key_len] = '\0';
+    // the var was already added to one or more dictionaries
+    var->key_items->prev_item = new_key_item;
+    new_key_item->next_item = var->key_items;
+    var->key_items = new_key_item;
   }
-  var->key->var = var;
+  
+  new_key_item->key = calloc(1, sizeof(struct mg_bvar_dic_key));
+  if (key_len == -1) {
+    new_key_item->key->name = strdup(key_name);
+  } else {
+    new_key_item->key->name = malloc(key_len + 1);
+    strncpy((char *)new_key_item->key->name, key_name, key_len);
+    ((char *)new_key_item->key->name)[key_len] = '\0';
+  }
+  new_key_item->key->var = var;
   
   // attach the new var as first var
-  var->key->prev_var = last_var;
+  new_key_item->key->prev_var = last_var;
   if (last_var == root) {
     last_var->value.dic_head.var = var;
   } else {
-    last_var->key->next_var = var;
+    last_key_item->key->next_var = var;
   }
 
   // increase dic length
   ++root->value.dic_head.count;
   // set dictionary as changed
   mg_bvar_set_changed(root);
-
+ 
+  new_key_item = var->key_items;
+  while (new_key_item) {
+    new_key_item = new_key_item->next_item;
+  }
+  
   return true;
 }
 
@@ -162,46 +241,84 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
   mgos_bvar_t var = root->value.dic_head.var;
   if (key_len == -1) key_len = strlen(key_name);
   while (var) {
-    if (strncmp(var->key->name, key_name, key_len) == 0 && key_len == strlen(var->key->name)) return var;
-    var = var->key->next_var;
+    // find the right key to follow in case there are two or more (the var
+    // belongs to two or more dictionaries)
+    struct mg_bvar_dic_key_item *key_item = mg_bvar_dic_get_key_item(var, root); 
+    if (strncmp(key_item->key->name, key_name, key_len) == 0 && key_len == strlen(key_item->key->name)) return var;
+    var = key_item->key->next_var;
   }
-
+  
   if (create) {
     // not found...create a new variant
     mgos_bvar_t var = mgos_bvar_new();
     if (mg_bvar_dic_add(root, key_name, key_len, var)) return var;
     mgos_bvar_free(var);
   }
-
   return NULL;
 }
 
-void mg_bvar_dic_rem_key(mgos_bvar_t var) {
-  struct mg_bvar_dic_key *key = (var ? var->key : NULL);
-  if (key) {
-    mgos_bvar_t parent = mg_bvar_dic_get_parent(var, false);
-    if (parent) {
-      --parent->value.dic_head.count;  // decrease dic length
-      mg_bvar_set_changed(parent); // set dic as changed
+void mg_bvar_dic_rem_key(mgos_bvar_t dic, mgos_bvar_t var) {
+  bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
+                       struct mg_bvar_dic_key_item *key_item) {
+    if (parent != dic) return true;
+    --parent->value.dic_head.count;  // decrease dic length
+    mg_bvar_set_changed(parent); // set dic as changed
+
+    struct mg_bvar_dic_key_item *new_key_item = var->key_items;
+    while (new_key_item) {
+      new_key_item = new_key_item->next_item;
     }
   
-    // start removing key...
-    var->key = NULL;
+    struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, dic);
+    struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, dic);
+
+    // remove the the key form the key list of the var
+    if (key_item->prev_item) {
+      key_item->prev_item->next_item = key_item->next_item;
+      if (key_item->next_item) { key_item->next_item->prev_item = key_item->prev_item; }
+    } else {
+      var->key_items = key_item->next_item;
+      if (var->key_items) { var->key_items->prev_item = NULL; }
+    }
     
-    if (key->prev_var) {
-      if (mgos_bvar_is_dic(key->prev_var)) {
-        key->prev_var->value.dic_head.var = key->next_var;
+    if (prev_item && next_item) {
+      prev_item->key->next_var = (next_item ? next_item->key->var : NULL);
+      next_item->key->prev_var = (prev_item ? prev_item->key->var : NULL);
+    } else if (!prev_item && !next_item) {
+      // removing the only one key from dictionary
+      dic->value.dic_head.var = NULL;
+    } else if (!prev_item || !next_item) {
+      if (!prev_item) {
+        // removing the first key from dictionary
+        dic->value.dic_head.var = next_item->key->var;
+        next_item->key->prev_var = parent;
       } else {
-        key->prev_var->key->next_var = key->next_var;
+        // removing the last key from dictionary
+        prev_item->key->next_var = NULL;
       }
     }
-    
-    if (key->next_var) {
-      key->next_var->key->prev_var = key->prev_var;
+      
+    free((char *)key_item->key->name);
+    free(key_item->key);
+    free(key_item);
+
+    new_key_item = var->key_items;
+    while (new_key_item) {
+      new_key_item = new_key_item->next_item;
     }
     
-    free((char *)key->name);
-    free(key);
+    return false;
+	};
+  mg_bvar_dic_walk_parents(var, on_parent_found);
+}
+
+void mg_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
+  if (mgos_bvar_is_dic(var)) {
+    while (var->value.dic_head.var) {
+      mgos_bvar_t v = var->value.dic_head.var;
+      mg_bvar_dic_rem_key(var, v);
+      if (dispose) mgos_bvar_free(v);
+    }
   }
 }
 
@@ -223,19 +340,20 @@ enum mgos_bvar_cmp_res mg_bvar_dic_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
  
   mgos_bvar_t var = dsmall->value.dic_head.var;
   while(var) {
-    mgos_bvar_t value = mg_bvar_dic_get((mgos_bvar_t)dbig, var->key->name, strlen(var->key->name), false);
+    struct mg_bvar_dic_key_item *my_key_items = mg_bvar_dic_get_key_item(var, dsmall);
+    mgos_bvar_t value = mg_bvar_dic_get((mgos_bvar_t)dbig, my_key_items->key->name, strlen(my_key_items->key->name), false);
     if (!value)
       return MGOS_BVAR_CMP_RES_NOT_EQUAL; // key not found, the twp dictionaries are not equal
     if (mgos_bvar_cmp(value, var) != MGOS_BVAR_CMP_RES_EQUAL)
-      return MGOS_BVAR_CMP_RES_NOT_EQUAL; // the two keys are not equal, so the two dictionaries are not equal
-    var = var->key->next_var;
+      return MGOS_BVAR_CMP_RES_NOT_EQUAL; // the two key_items are not equal, so the two dictionaries are not equal
+    var = my_key_items->key->next_var;
   }
 
-  // all keys of the smaller dictionary are euqal to the ones in the
+  // all key_items of the smaller dictionary are euqal to the ones in the
   // bigger dictionary
 
   if (var1_len == var2_len)
-    return MGOS_BVAR_CMP_RES_EQUAL; // all keys are euqal, so the two dictionaries are equal
+    return MGOS_BVAR_CMP_RES_EQUAL; // all key_items are euqal, so the two dictionaries are equal
   else if (var1_len < var2_len)
     return (MGOS_BVAR_CMP_RES_MINOR | MGOS_BVAR_CMP_RES_EQUAL); // an exact copy of var1 is contained into the bigger var2 (var1 < var2)
   else
@@ -247,27 +365,33 @@ bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
   if (!mgos_bvar_is_dic(src)) return false;
   if (!mg_bvar_dic_ensure(dest, false)) return false;
 
-  // Sync existing keys and add new keys
+  // Sync existing key_items and add new key_items
+  struct mg_bvar_dic_key_item *key_item;
   mgos_bvar_t value;
   mgos_bvar_t var = src->value.dic_head.var;
   while(var) {
-    value = mg_bvar_dic_get(dest, var->key->name, strlen(var->key->name), true);
-    if (mgos_bvar_cmp(value, var) != MGOS_BVAR_CMP_RES_EQUAL) {
+    key_item = mg_bvar_dic_get_key_item(var, src);
+    value = mg_bvar_dic_get(dest, key_item->key->name, -1, false);
+    if (value) {
       mg_bvar_copy(var, value, del_unmatch);
+    } else {
+      mg_bvar_dic_add(dest, key_item->key->name, -1, var); 
     }
-    var = var->key->next_var;
+    var = key_item->key->next_var;
   }
   
   if (del_unmatch) {
-    // Remove not existing keys 
+    // Remove not existing key_items 
     var = dest->value.dic_head.var;
     while(var) {
-      if (!mg_bvar_dic_get((mgos_bvar_t)src, var->key->name, strlen(var->key->name), false)) {
-        value = var;
-        var = var->key->next_var; 
+      key_item = mg_bvar_dic_get_key_item(var, dest);
+      if (!mg_bvar_dic_get((mgos_bvar_t)src, key_item->key->name, strlen(key_item->key->name), false)) {
+        var = key_item->key->next_var; 
+        value = key_item->key->var;
+        mg_bvar_dic_rem_key(dest, value);
         mgos_bvar_free(value);
       } else {
-        var = var->key->next_var;
+        var = key_item->key->next_var;
       }
     }
   }
@@ -329,7 +453,7 @@ void mg_bvar_json_walk_cb(void *callback_data,
       // nothing to do
       break;
     case JSON_TYPE_OBJECT_END: {
-        mgos_bvar_t parent = mg_bvar_dic_get_parent(arg->var, false);
+        mgos_bvar_t parent = mg_bvar_dic_get_parent(arg->var);
         if (parent) arg->var = parent;
         break;
       }
@@ -395,14 +519,14 @@ enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var) {
 
 void mgos_bvar_set_null(mgos_bvar_t var) {
   if (var && (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_NULL)) {
-    #ifdef MGOS_BVAR_HAVE_DIC
-    if (mgos_bvar_is_dic(var)) {
-      mgos_bvar_remove_keys(var, true);
-    }
-    #endif
-    mg_bvar_close(var);
+    mgos_bvar_clear(var);
     mg_bvar_set_type(var, MGOS_BVAR_TYPE_NULL);
-    mg_bvar_set_changed(var);
+  }
+}
+
+void mgos_bvar_clear(mgos_bvar_t var) {
+  if (var && (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_NULL)) {
+    mg_bvar_close(var);
   }
 }
 
@@ -508,7 +632,6 @@ void mgos_bvar_set_integer(mgos_bvar_t var, long value) {
       mg_bvar_close(var);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_INTEGER);
       var->v_size = sizeof(long);
-      mg_bvar_set_changed(var);
     } else if (value != var->value.l) {
       mg_bvar_set_changed(var);
     }
@@ -522,7 +645,6 @@ void mgos_bvar_set_bool(mgos_bvar_t var, bool value) {
       mg_bvar_close(var);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_BOOL);
       var->v_size = sizeof(bool);
-      mg_bvar_set_changed(var);
     } else if (var->value.b != value) {
       mg_bvar_set_changed(var);
     }
@@ -536,7 +658,6 @@ void mgos_bvar_set_decimal(mgos_bvar_t var, double value) {
       mg_bvar_close(var);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_DECIMAL);
       var->v_size = sizeof(double);
-      mg_bvar_set_changed(var);
     } else if (var->value.d != value) {
       mg_bvar_set_changed(var);
     }
@@ -577,22 +698,46 @@ void mgos_bvar_set_str(mgos_bvar_t var, const char *value) {
   mgos_bvar_set_nstr(var, value, -1);
 }
 
-void mgos_bvar_set_unchanged(mgos_bvar_t var) {
-  if (!var) return;
+#ifdef MGOS_BVAR_HAVE_DIC
+void mg_bvar_set_asc_unchanged(mgos_bvar_t var, char flag) {
+  bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
+                        struct mg_bvar_dic_key_item *key_item) {
+    mg_bvar_set_asc_unchanged(parent, 1);
+    return true;
+  };
+  mg_bvar_dic_walk_parents(var, on_parent_found);
+
+  if (flag == 1) --var->changed;
+}
+#endif
+
+void mg_bvar_set_unchanged(mgos_bvar_t var) {
   #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(var)) {
     mgos_bvar_t v = var->value.dic_head.var;
     while(v) {
-      mgos_bvar_set_unchanged(v);
-      v = v->key->next_var;
+      if (mgos_bvar_is_changed(var)) {
+        mg_bvar_set_unchanged(v);
+      }
+      v = mg_bvar_dic_get_key_item(v, var)->key->next_var;
     }
   }
   #endif
   var->changed = 0;
 }
 
+void mgos_bvar_set_unchanged(mgos_bvar_t var) {
+  if (mgos_bvar_is_changed(var)) {
+    #ifdef MGOS_BVAR_HAVE_DIC
+    mg_bvar_set_asc_unchanged(var, 0);
+    #endif
+    mg_bvar_set_unchanged(var);
+    var->changed = 0;
+  }
+}
+
 bool mgos_bvar_is_changed(mgos_bvarc_t var) {
-  return (var ? (var->changed == 1) : false);
+  return (var ? (var->changed > 0) : false);
 }
 
 long mgos_bvar_get_integer(mgos_bvarc_t var) {
@@ -640,43 +785,47 @@ const char *mgos_bvar_get_str(mgos_bvarc_t var) {
 
 #ifdef MGOS_BVAR_HAVE_JSON
 
+#ifdef MGOS_BVAR_HAVE_DIC
+int json_printf_bvar_dic_key_item(struct json_out *out, va_list *ap) {
+  struct mg_bvar_dic_key_item *key_item = va_arg(*ap, void *);
+  mgos_bvarc_t dic = va_arg(*ap, void *);
+  return (json_printf(out, "%Q:", key_item->key->name) +
+    json_printf(out, "%M", json_printf_bvar, key_item->key->var));
+}
+#endif
+
 int json_printf_bvar(struct json_out *out, va_list *ap) {
   mgos_bvarc_t var = va_arg(*ap, void *);
   
-  int len = 0;
   #ifdef MGOS_BVAR_HAVE_DIC
-  if (var->key) len += json_printf(out, "%Q:", var->key->name);
   if (mgos_bvar_is_dic(var)) {
-    len += json_printf(out, "{");
+    int len = json_printf(out, "{");
     mgos_bvar_t v = var->value.dic_head.var;
     while (v) {
-      len += json_printf(out, "%M", json_printf_bvar, v);
-      v = v->key->next_var;
+      struct mg_bvar_dic_key_item *key_item = mg_bvar_dic_get_key_item(v, var);
+      len += json_printf(out, "%M", json_printf_bvar_dic_key_item, key_item, var);
+      v = key_item->key->next_var;
       if (v) len += json_printf(out, ",");
     }
     len += json_printf(out, "}");
+    return len;
   }
   #endif
 
   switch(mgos_bvar_get_type(var)) {
     case MGOS_BVAR_TYPE_INTEGER:
-      len += json_printf(out, "%ld", var->value.l);
-      break;
+      return json_printf(out, "%ld", var->value.l);
     case MGOS_BVAR_TYPE_DECIMAL:
-      len += json_printf(out, "%lf", var->value.d);
-      break;
+      return json_printf(out, "%lf", var->value.d);
     case MGOS_BVAR_TYPE_BOOL:
-      len += json_printf(out, "%B", var->value.b);
-      break;
+      return json_printf(out, "%B", var->value.b);
     case MGOS_BVAR_TYPE_STR:
-      len += json_printf(out, "%Q", var->value.s);
-      break;
+      return json_printf(out, "%Q", var->value.s);
     case MGOS_BVAR_TYPE_NULL:
-      len += json_printf(out, "%Q", NULL);
-      break;
+      return json_printf(out, "%Q", NULL);
   };
 
-  return len;
+  return 0;
 }
 
 mgos_bvar_t mgos_bvar_json_bscanf(const char *json, int json_len) {
@@ -690,7 +839,7 @@ mgos_bvar_t mgos_bvar_json_bscanf(const char *json, int json_len) {
       var = arg.var;
       #endif
     } else {
-      mgos_bvar_free(arg.var);
+      if (mgos_bvar_free(arg.var)) arg.var = NULL;
     }
     mgos_bvar_set_unchanged(var);
   }
@@ -703,24 +852,27 @@ mgos_bvar_t mgos_bvar_json_scanf(const char *json) {
 
 #endif // MGOS_BVAR_HAVE_JSON
 
-void mgos_bvar_free(mgos_bvar_t var) {
-  if (!var) return;
+bool mgos_bvar_free(mgos_bvar_t var) {
+  if (!var) return false;
   
   #ifdef MGOS_BVAR_HAVE_DIC
-  bool is_dic = mgos_bvar_is_dic(var);
-  if (is_dic) {
-    while (var->value.dic_head.var) {
-      mgos_bvar_free(var->value.dic_head.var);
-    }
+  if (mgos_bvar_is_dic(var)) {
+    mg_bvar_remove_keys(var, true);
   }
   #endif
 
   #ifdef MGOS_BVAR_HAVE_DIC
-  mg_bvar_dic_rem_key(var);
+  if (var->key_items) {
+    // the var belongs to a dictionary, I cannot
+    // dispose it
+    return false;
+  }
+  
   #endif
   
   mg_bvar_close(var);
   free(var);
+  return true;
 }
 
 int mgos_bvar_length(mgos_bvarc_t var) {
@@ -738,34 +890,40 @@ int mgos_bvar_length(mgos_bvarc_t var) {
 #ifdef MGOS_BVAR_HAVE_DIC
 
 mgos_bvar_t mgos_bvar_new_dic() {
-  return mg_bvar_dic_ensure(mgos_bvar_new(), false);
+  mgos_bvar_t dic = mg_bvar_dic_ensure(mgos_bvar_new(), false);
+  mgos_bvar_set_unchanged(dic);
+  return dic;
 }
 
 bool mgos_bvar_is_dic(mgos_bvarc_t var) {
   return (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_DIC);
 }
 
-void mgos_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
-  if (mgos_bvar_is_dic(var)) {
-    void (*del_func)(mgos_bvar_t);
-    del_func = (dispose ? mgos_bvar_free : mg_bvar_dic_rem_key);
-    while (var->value.dic_head.var) {
-      del_func(var->value.dic_head.var);
-    }
-  }
+void mgos_bvar_remove_keys(mgos_bvar_t var) {
+  mg_bvar_remove_keys(var, false);
 }
 
-mgos_bvar_t mgos_bvar_remove_key(mgos_bvar_t var, const char *key, bool dispose) {
-  void (*del_func)(mgos_bvar_t);
-  del_func = (dispose ? mgos_bvar_free : mg_bvar_dic_rem_key);
+mgos_bvar_t mgos_bvar_remove_key(mgos_bvar_t var, const char *key) {
   mgos_bvar_t v = mg_bvar_dic_get(var, key, (key ? strlen(key) : 0), false);
-  if (v) del_func(v);
-  return (dispose ? NULL : v);
+  mg_bvar_dic_rem_key(var, v);
+  return v;
 }
 
-bool mgos_bvar_add_key(mgos_bvar_t var, const char *key, mgos_bvar_t val) {
-  if (mg_bvar_dic_get(var, key, -1, false) == NULL) {
-    if (mg_bvar_dic_add(var, key, -1, val)) { return true; }
+void mgos_bvar_delete_key(mgos_bvar_t var, const char *key) {
+  mgos_bvar_free(mgos_bvar_remove_key(var, key));
+}
+
+bool mgos_bvar_add_key(mgos_bvar_t dic, const char *key_name, mgos_bvar_t key_value) {
+  if (mg_bvar_dic_get(dic, key_name, -1, false) == NULL &&
+      mg_bvar_dic_is_parent(key_value, dic) == false) {
+    if (mg_bvar_dic_add(dic, key_name, -1, key_value)) { return true; }
+  } 
+  return false;
+}
+
+bool mgos_bvar_set_key(mgos_bvar_t dic, const char *key_name, mgos_bvar_t key_value) {
+  if (mg_bvar_dic_is_parent(key_value, dic) == false) {
+    // TODO: COMPLETE
   } 
   return false;
 }
@@ -797,17 +955,11 @@ bool mgos_bvarc_get_next_key(mgos_bvarc_enum_t *key_enum, mgos_bvarc_t *out, con
   if (out) *out = NULL;
   if (!key_enum || (*key_enum == NULL)) return false; // no next
 
-  mgos_bvar_t var = (mgos_bvar_t)*key_enum;
-
-  if (mgos_bvar_is_dic(var)) {
-    var = var->value.dic_head.var;
-  }
+  struct mg_bvar_dic_key_item *key_item = (struct mg_bvar_dic_key_item *)*key_enum;
   
-  if (!var || !var->key) return false;
-  
-  if (out) *out  = var;
-  if (key_name) *key_name = var->key->name;
-  *key_enum = (mgos_bvar_enum_t)var->key->next_var;
+  if (out) *out  = key_item->key->var;
+  if (key_name) *key_name = key_item->key->name;
+  *key_enum = (mgos_bvar_enum_t)mg_bvar_dic_get_key_item(key_item->key->next_var, key_item->parent_dic);
   return true;
 }
 
@@ -816,11 +968,12 @@ bool mgos_bvar_has_key(mgos_bvarc_t var, const char *key) {
 }
 
 mgos_bvar_enum_t mgos_bvar_get_keys(mgos_bvar_t var) {
-  return (mgos_bvar_enum_t)var;
+  return (mgos_bvar_enum_t)mgos_bvarc_get_keys((mgos_bvarc_t)var);
 }
 
 mgos_bvarc_enum_t mgos_bvarc_get_keys(mgos_bvarc_t var) {
-  return (mgos_bvarc_enum_t)var;
+  if (!mgos_bvar_is_dic(var)) return NULL;
+  return (mgos_bvarc_enum_t)mg_bvar_dic_get_key_item(var->value.dic_head.var, var);
 }
 
 #endif //MGOS_BVAR_HAVE_DIC

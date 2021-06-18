@@ -216,9 +216,9 @@ Returns `true` if the bVariant is changed since its creation or since the last c
 |var|A bVariant.|
 ### mgos_bvar_free
 ```c
-void mgos_bvar_free(mgos_bvar_t var);
+bool mgos_bvar_free(mgos_bvar_t var);
 ```
-Deallocates the bVariant. If it is an element of a bVariantDictionary, it is also removed from the collection. If it is a bVariantDictionary, all its items are deallocated as well.
+Disposes a bVariant. If `var` was added to one or more bVariantDictionaries it is not disposed. In this case you should invoke [mgos_bvar_remove_key](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_key) firts. If `var` is a bVariantDictionary, all items are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)) and recursively disposed. Returns `true` if the bVariant is disposed, or `false` otherwise.
 
 |Parameter||
 |--|--|

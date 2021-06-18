@@ -6,7 +6,7 @@ This Mongoose OS library allows you to create variant bVariants which haven't da
 - Integer (`long`)
 - Decimal (`double`)
 - String (`char *`)
-- Dictionary (key/value pair dictionary) - This requires you to include the [bVariantDictionaries library](https://github.com/diy365-mgos/bvar-dic) in your porject.
+- Dictionary (key/value pair dictionary) - This requires you to include the [[bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic) library](https://github.com/diy365-mgos/bvar-dic) in your porject.
 ## Features
 - **Observable value** - You can check it the value of a bVariant is changed or not.
 - **JSON support** - You can dynamically create a variant varibale from a JSON string or you can save it as JSON in a very easy way. Just include the [bVariant JSON library](https://github.com/diy365-mgos/bvar-json) into your project. 
@@ -47,7 +47,7 @@ bVariant data-types.
 ```c
 enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var);
 ```
-Returns the bVariant [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYPE_DIC` if it is a dictionary (bVariantDictionary).
+Returns the bVariant [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYPE_DIC` if it is a dictionary ([bVariantDictionary](https://github.com/diy365-mgos/bvar-dic)).
 
 |Parameter||
 |--|--|
@@ -161,10 +161,10 @@ Returns a value indicating the relationship between the compared bVariants:
 |--|--|
 |MGOS_BVAR_CMP_RES_NOT_EQUAL|`var1` is not equal to `var2`.|
 |MGOS_BVAR_CMP_RES_EQUAL|`var1` is equal to `var2`.|
-|MGOS_BVAR_CMP_RES_MINOR|`var1` is minor than `var2` and both are not bVariantDictionaries.|
-|MGOS_BVAR_CMP_RES_MAJOR|`var1` is major than `var2` and both are not bVariantDictionaries.|
+|MGOS_BVAR_CMP_RES_MINOR|`var1` is minor than `var2` and both are not [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic).|
+|MGOS_BVAR_CMP_RES_MAJOR|`var1` is major than `var2` and both are not [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic).|
 
-In case `var1` and `var2` are both bVariantDictionaries these two combinations could be returned as well:
+In case `var1` and `var2` are both [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic) these two combinations could be returned as well:
 - `(MGOS_BVAR_CMP_RES_MINOR|MGOS_BVAR_CMP_RES_EQUAL)`: in case an exact copy of `var1` is contained into `var2`. 
 - `(MGOS_BVAR_CMP_RES_MAJOR|MGOS_BVAR_CMP_RES_EQUAL)`: in case `var1` contains an exact copy of `var2`.
 ### mgos_bvar_copy
@@ -181,7 +181,7 @@ Copies a source bVariant into the destination one. Returns `true` on success, or
 ```c
 bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var);
 ```
-Merges a source bVariant into the destination one. Returns `true` on success, or `false` otherwise. If the source is not a bVariantDictionary it is just copied into the destination (see [mgos_bvar_copy()](#mgos_bvar_copy) above), otherwise source bVariantDictionary keys are added to the destination one. 
+Merges a source bVariant into the destination one. Returns `true` on success, or `false` otherwise. If the source is not a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic), it is just copied into the destination (see [mgos_bvar_copy()](#mgos_bvar_copy) above), otherwise source [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic) keys are added to the destination one. 
 
 |Parameter||
 |--|--|
@@ -191,7 +191,7 @@ Merges a source bVariant into the destination one. Returns `true` on success, or
 ```c
 int mgos_bvar_length(mgos_bvarc_t var); 
 ```
-Returns the number of items in a bVariantDictionary or the string length. Returns `0` in all other cases.
+Returns the number of items in a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic) or the string length. Returns `0` in all other cases.
 
 |Parameter||
 |--|--|
@@ -200,7 +200,7 @@ Returns the number of items in a bVariantDictionary or the string length. Return
 ```c
 void mgos_bvar_set_unchanged(mgos_bvar_t var);
 ```
-Marks the bVariant as unchanged. This function could be used in combination with `mgos_bvar_is_changed()`.
+Marks the bVariant as unchanged. This function could be used in combination with `mgos_bvar_is_changed()`. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic), all keys ar marked as *unchanged*. If all *changed* keys of a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic) are marked as *unchanged*, the dictionary is marked as *unchanged* as well.
 
 |Parameter||
 |--|--|
@@ -209,7 +209,7 @@ Marks the bVariant as unchanged. This function could be used in combination with
 ```c
 bool mgos_bvar_is_changed(mgos_bvarc_t var);
 ```
-Returns `true` if the bVariant is changed since its creation or since the last call of `mgos_bvar_set_unchanged()`, or `false` otherwise.
+Returns `true` if the bVariant is changed since its creation or since the last call of `mgos_bvar_set_unchanged()`, or `false` otherwise. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic) and one or more than its keys are *changed*, the dictionary is marked as *changed* as well.
 
 |Parameter||
 |--|--|
@@ -218,7 +218,7 @@ Returns `true` if the bVariant is changed since its creation or since the last c
 ```c
 void mgos_bvar_clear(mgos_bvar_t var);
 ```
-Clears a bVariant setting it to the default value (`0`, `0.0`, `false`, `""`). If `var` is a bVariantDictionary all keys are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)).
+Clears a bVariant setting it to the default value (`0`, `0.0`, `false`, `""`). If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic), all keys are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)).
 
 |Parameter||
 |--|--|
@@ -227,7 +227,7 @@ Clears a bVariant setting it to the default value (`0`, `0.0`, `false`, `""`). I
 ```c
 bool mgos_bvar_free(mgos_bvar_t var);
 ```
-Disposes a bVariant. If `var` was added to one or more bVariantDictionaries it is not disposed. In this case you should invoke [mgos_bvar_remove_key](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_key) firts. If `var` is a bVariantDictionary, all items are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)) and recursively disposed. Returns `true` if the bVariant is disposed, or `false` otherwise.
+Disposes a bVariant. If `var` was added to one or more [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic), it is not disposed. In this case you should invoke [mgos_bvar_remove_key](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_key) firts. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic), all items are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)) and recursively disposed. Returns `true` if the bVariant is disposed, or `false` otherwise.
 
 |Parameter||
 |--|--|

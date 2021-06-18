@@ -209,7 +209,7 @@ Marks the bVariant as unchanged. This function could be used in combination with
 ```c
 bool mgos_bvar_is_changed(mgos_bvarc_t var);
 ```
-Returns `true` if the bVariant is changed since its creation or since the last call of `mgos_bvar_set_unchanged()`, or `false` otherwise. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic) and one or more than its keys are *changed*, the dictionary is marked as *changed* as well.
+Returns `true` if the bVariant is changed since its creation or since the last call of `mgos_bvar_set_unchanged()`, or `false` otherwise. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic) and one or more of its keys are *changed*, the dictionary is marked as *changed* as well.
 
 |Parameter||
 |--|--|

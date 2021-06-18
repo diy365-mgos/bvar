@@ -125,7 +125,33 @@ int main()
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   ASSERT(mgos_bvar_get_type(v1) == MGOS_BVAR_TYPE_NULL);
   mgos_bvar_free(v1);
-
+  
+  v1 = mgos_bvar_new_decimal(101.10);
+  mgos_bvar_clear(v1);
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(mgos_bvar_get_decimal(v1) == 0);
+  mgos_bvar_free(v1);
+  
+  v1 = mgos_bvar_new_integer(101);
+  mgos_bvar_clear(v1);
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(mgos_bvar_get_integer(v1) == 0);
+  mgos_bvar_free(v1);
+  
+  v1 = mgos_bvar_new_bool(true);
+  mgos_bvar_clear(v1);
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(mgos_bvar_get_bool(v1) == false);
+  mgos_bvar_free(v1);
+  
+  v1 = mgos_bvar_new_str("Mark");
+  ASSERT(mgos_bvar_length(v1) == strlen(mgos_bvar_get_str(v1)));
+  mgos_bvar_clear(v1);
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(strcmp(mgos_bvar_get_str(v1), "") == 0);
+  ASSERT(mgos_bvar_length(v1) == 0);
+  mgos_bvar_free(v1);
+  
   v1 = mgos_bvar_new();
   mgos_bvar_set_decimal(v1, 101.10);
   ASSERT(mgos_bvar_get_bool(v1) == true);
@@ -405,6 +431,18 @@ int main()
   #endif // MGOS_BVAR_HAVE_JSON
 
   #ifdef MGOS_BVAR_HAVE_DIC
+  
+  v1 = mgos_bvar_new_dic();
+  ASSERT(mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark")));
+  ASSERT(mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46)));
+  ASSERT(mgos_bvar_length(v1) == 2);
+  mgos_bvar_set_unchanged(v1);
+  ASSERT(!mgos_bvar_is_changed(v1));
+  mgos_bvar_clear(v1);
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(mgos_bvar_length(v1) == 0);
+  mgos_bvar_free(v1);
+  
   
   v1 = mgos_bvar_new_dic();
   ASSERT(mgos_bvar_is_dic(v1));

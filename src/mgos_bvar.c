@@ -114,7 +114,7 @@ int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_fu
 #endif
 
 void mg_bvar_set_changed(mgos_bvar_t var) {
-  if (!var) return;
+  if (!var || mgos_bvar_is_changed(var)) return;
   #ifdef MGOS_BVAR_HAVE_DIC
   bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
                        struct mg_bvar_dic_key_item *key_item) {
@@ -132,23 +132,32 @@ void mg_bvar_set_changed(mgos_bvar_t var) {
 }
 
 void mg_bvar_remove_keys(mgos_bvar_t, bool);
-void mg_bvar_close(mgos_bvar_t var) {
+void mg_bvar_close(mgos_bvar_t var, bool free_str) {
   if (var) {
     #ifdef MGOS_BVAR_HAVE_DIC
-    if (mgos_bvar_is_dic(var)) mg_bvar_remove_keys(var, true);
+    if (mgos_bvar_is_dic(var)) {
+      mg_bvar_remove_keys(var, true);
+      return;
+    }
     #endif    
 
     if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) {
-      if (var->value.s) mg_bvar_set_changed(var);
-      free(var->value.s);
-      var->value.s = NULL;
-    } else if (!mgos_bvar_is_changed(var)) {
-      // mark as changed (if needed)
-      for (int i=0; i < sizeof(union mgos_bvar_value); ++i) {
-        if (((char *)&var->value)[i] != 0) {
+      if (free_str) {
+        mg_bvar_set_changed(var);
+        free(var->value.s);
+      } else {
+        if (strlen(var->value.s) > 0) {
           mg_bvar_set_changed(var);
-          break;
         }
+        var->value.s[0] = '\0'; // set empty string
+        return;
+      }
+    } else {
+      // mark as changed (if needed)
+      int i = 0;
+      for (; i < sizeof(union mgos_bvar_value) && (((char *)&var->value)[i] == 0); ++i);
+      if (i < sizeof(union mgos_bvar_value)) {
+        mg_bvar_set_changed(var);
       }
     }
 
@@ -173,7 +182,7 @@ mgos_bvar_t mg_bvar_dic_ensure(mgos_bvar_t var, bool clear) {
     if (mgos_bvar_is_dic(var)) {
       if (clear) mg_bvar_remove_keys(var, true);
     } else {
-      mg_bvar_close(var);
+      mg_bvar_close(var, true);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_DIC);
     }
   }
@@ -519,14 +528,14 @@ enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var) {
 
 void mgos_bvar_set_null(mgos_bvar_t var) {
   if (var && (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_NULL)) {
-    mgos_bvar_clear(var);
+    mg_bvar_close(var, true);
     mg_bvar_set_type(var, MGOS_BVAR_TYPE_NULL);
   }
 }
 
 void mgos_bvar_clear(mgos_bvar_t var) {
   if (var && (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_NULL)) {
-    mg_bvar_close(var);
+    mg_bvar_close(var, false);
   }
 }
 
@@ -629,7 +638,7 @@ bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
 void mgos_bvar_set_integer(mgos_bvar_t var, long value) {
   if (var) {
     if (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_INTEGER) {
-      mg_bvar_close(var);
+      mg_bvar_close(var, true);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_INTEGER);
       var->v_size = sizeof(long);
     } else if (value != var->value.l) {
@@ -642,7 +651,7 @@ void mgos_bvar_set_integer(mgos_bvar_t var, long value) {
 void mgos_bvar_set_bool(mgos_bvar_t var, bool value) {
   if (var) {
     if (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_BOOL) {
-      mg_bvar_close(var);
+      mg_bvar_close(var, true);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_BOOL);
       var->v_size = sizeof(bool);
     } else if (var->value.b != value) {
@@ -655,7 +664,7 @@ void mgos_bvar_set_bool(mgos_bvar_t var, bool value) {
 void mgos_bvar_set_decimal(mgos_bvar_t var, double value) {
   if (var) {
     if (mgos_bvar_get_type(var) != MGOS_BVAR_TYPE_DECIMAL) {
-      mg_bvar_close(var);
+      mg_bvar_close(var, true);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_DECIMAL);
       var->v_size = sizeof(double);
     } else if (var->value.d != value) {
@@ -685,7 +694,7 @@ void mgos_bvar_set_nstr(mgos_bvar_t var, const char *value, size_t value_len) {
     return;
   }
 
-  mg_bvar_close(var);
+  mg_bvar_close(var, true);
   mg_bvar_set_type(var, MGOS_BVAR_TYPE_STR);
   if (value) {
     var->value.s = strndup(value, value_len);
@@ -870,7 +879,7 @@ bool mgos_bvar_free(mgos_bvar_t var) {
   
   #endif
   
-  mg_bvar_close(var);
+  mg_bvar_close(var, true);
   free(var);
   return true;
 }

@@ -64,7 +64,7 @@ mgos_bvar_t mgos_bvar_new_bool(bool value);
 mgos_bvar_t mgos_bvar_new_decimal(double value);
 mgos_bvar_t mgos_bvar_new_str(const char *value);
 ```
-Creates and initializes a bVariant. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free`.
+Creates and initializes a bVariant. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free()`.
 
 |Parameter||
 |--|--|
@@ -73,7 +73,7 @@ Creates and initializes a bVariant. Returns `NULL` if error. Invoking `mgos_bvar
 ```c       
 mgos_bvar_t mgos_bvar_new_nstr(const char *value, int value_len);
 ```
-Creates and initializes a bVariant value to the provided string. This is a specialized version of `mgos_bvar_new_str()`. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL, <any_value>)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free`.
+Creates and initializes a bVariant value to the provided string. This is a specialized version of `mgos_bvar_new_str()`. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL, <any_value>)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free()`.
 
 |Parameter||
 |--|--|
@@ -210,6 +210,15 @@ Marks the bVariant as unchanged. This function could be used in combination with
 bool mgos_bvar_is_changed(mgos_bvarc_t var);
 ```
 Returns `true` if the bVariant is changed since its creation or since the last call of `mgos_bvar_set_unchanged()`, or `false` otherwise.
+
+|Parameter||
+|--|--|
+|var|A bVariant.|
+### mgos_bvar_clear
+```c
+void mgos_bvar_clear(mgos_bvar_t var);
+```
+Clears a bVariant setting it to the default value (`0`, `0.0`, `false`, `""`). If `var` is a bVariantDictionary all keys are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)).
 
 |Parameter||
 |--|--|

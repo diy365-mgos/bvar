@@ -39,7 +39,7 @@ int main()
   #endif
   printf("\n");
   
-  mgos_bvar_t v1 = NULL, v2 = NULL;
+  mgos_bvar_t v1 = NULL, v2 = NULL, v3 = NULL;
   mgos_bvarc_t cv1 = NULL;
   #ifdef MGOS_BVAR_HAVE_DIC
   mgos_bvarc_enum_t e1 = NULL;
@@ -941,6 +941,49 @@ int main()
   mgos_bvar_merge(v1, v2);
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
+  v2 = mgos_bvar_new();
+  mgos_bvar_add_key(v2, "Age", mgos_bvar_new_integer(46));
+  mgos_bvar_add_key(v2, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_set_unchanged(v2);
+  mgos_bvar_merge(v1, v2);
+  ASSERT(!mgos_bvar_is_changed(v2));
+  mgos_bvar_free(v1);
+  mgos_bvar_free(v2);
+  
+  mgos_bvar_t v958 = mgos_bvar_new_str("Mark");
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name", v958);
+  v3 = mgos_bvar_new();
+  mgos_bvar_add_key(v3, "Name", v958);
+  v2 = mgos_bvar_new();
+  mgos_bvar_add_key(v2, "Child", v3);
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(mgos_bvar_is_changed(v2));
+  ASSERT(mgos_bvar_is_changed(v3));
+  mgos_bvar_set_unchanged(v1);
+  mgos_bvar_set_unchanged(v2);
+  ASSERT(!mgos_bvar_is_changed(v1));
+  ASSERT(!mgos_bvar_is_changed(v2));
+  ASSERT(!mgos_bvar_is_changed(v3));
+  mgos_bvar_set_str(v958, "Mark");
+  ASSERT(!mgos_bvar_is_changed(v1));
+  ASSERT(!mgos_bvar_is_changed(v2));
+  ASSERT(!mgos_bvar_is_changed(v3));
+  mgos_bvar_set_str(v958, "Ted");
+  ASSERT(mgos_bvar_is_changed(v1));
+  ASSERT(mgos_bvar_is_changed(v2));
+  ASSERT(mgos_bvar_is_changed(v3));
+  mgos_bvar_set_unchanged(v958);
+  ASSERT(!mgos_bvar_is_changed(v1));
+  ASSERT(!mgos_bvar_is_changed(v2));
+  ASSERT(!mgos_bvar_is_changed(v3));
+  mgos_bvar_free(v1);
+  ASSERT(!mgos_bvar_free(v3));
   mgos_bvar_free(v2);
   
   v1 = mgos_bvar_new();

@@ -914,16 +914,8 @@ void mgos_bvar_delete_key(mgos_bvar_t var, const char *key) {
 }
 
 bool mgos_bvar_add_key(mgos_bvar_t dic, const char *key_name, mgos_bvar_t key_value) {
-  if (mg_bvar_dic_get(dic, key_name, -1, false) == NULL &&
-      mg_bvar_dic_is_parent(key_value, dic) == false) {
+  if (!mg_bvar_dic_is_parent(key_value, dic) && !mg_bvar_dic_get(dic, key_name, -1, false)) {
     if (mg_bvar_dic_add(dic, key_name, -1, key_value)) { return true; }
-  } 
-  return false;
-}
-
-bool mgos_bvar_set_key(mgos_bvar_t dic, const char *key_name, mgos_bvar_t key_value) {
-  if (mg_bvar_dic_is_parent(key_value, dic) == false) {
-    // TODO: COMPLETE
   } 
   return false;
 }

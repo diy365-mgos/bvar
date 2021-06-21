@@ -6,7 +6,7 @@ This Mongoose OS library allows you to create variant bVariants which haven't da
 - Integer (`long`)
 - Decimal (`double`)
 - String (`char *`)
-- Dictionary (key/value pair dictionary) - This requires you to include the [[bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic) library](https://github.com/diy365-mgos/bvar-dic) in your porject.
+- Dictionary (key/value pair dictionary) - This requires you to include the [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic) in your porject.
 ## Features
 - **Observable value** - You can check it the value of a bVariant is changed or not.
 - **JSON support** - You can dynamically create a variant varibale from a JSON string or you can save it as JSON in a very easy way. Just include the [bVariant JSON library](https://github.com/diy365-mgos/bvar-json) into your project. 
@@ -227,7 +227,7 @@ Clears a bVariant setting it to the default value (`0`, `0.0`, `false`, `""`). I
 ```c
 bool mgos_bvar_free(mgos_bvar_t var);
 ```
-Disposes a bVariant. If `var` was added to one or more [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic), it is not disposed. In this case you should invoke [mgos_bvar_remove_key](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_key) firts. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic), all items are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)) and recursively disposed. Returns `true` if the bVariant is disposed, or `false` otherwise.
+Disposes a bVariant. If `var` was added to one or more [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic), it is not disposed. In this case you should invoke [mgos_bvar_remove_key()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_key) first. If `var` is a [bVariantDictionary](https://github.com/diy365-mgos/bvar-dic), all items are removed (see [mgos_bvar_remove_keys()](https://github.com/diy365-mgos/bvar-dic#mgos_bvar_remove_keys)) and recursively disposed. Returns `true` if the bVariant is disposed, or `false` otherwise.
 
 |Parameter||
 |--|--|

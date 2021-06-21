@@ -797,7 +797,6 @@ const char *mgos_bvar_get_str(mgos_bvarc_t var) {
 #ifdef MGOS_BVAR_HAVE_DIC
 int json_printf_bvar_dic_key_item(struct json_out *out, va_list *ap) {
   struct mg_bvar_dic_key_item *key_item = va_arg(*ap, void *);
-  mgos_bvarc_t dic = va_arg(*ap, void *);
   return (json_printf(out, "%Q:", key_item->key->name) +
     json_printf(out, "%M", json_printf_bvar, key_item->key->var));
 }
@@ -812,7 +811,7 @@ int json_printf_bvar(struct json_out *out, va_list *ap) {
     mgos_bvar_t v = var->value.dic_head.var;
     while (v) {
       struct mg_bvar_dic_key_item *key_item = mg_bvar_dic_get_key_item(v, var);
-      len += json_printf(out, "%M", json_printf_bvar_dic_key_item, key_item, var);
+      len += json_printf(out, "%M", json_printf_bvar_dic_key_item, key_item);
       v = key_item->key->next_var;
       if (v) len += json_printf(out, ",");
     }

@@ -279,9 +279,9 @@ bool mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t child,
   LOG(LL_INFO, ("    Setting changed done."));
 
   LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", (int)key_item->key->prev_var));
-  struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, dic);
+  struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, parent);
   LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", (int)key_item->key->next_var));
-  struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, dic);
+  struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, parent);
 
   // remove the the key form the key list of the var
   LOG(LL_INFO, ("    Step #1..."));

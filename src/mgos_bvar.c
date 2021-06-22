@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include "mgos_bvar.h"
-#include "mgos.h"
 
 #ifdef MGOS_BVAR_HAVE_JSON
 #include "mgos_bvar_json.h"
@@ -102,20 +101,14 @@ typedef bool (* mg_bvar_dic_walk_parents_t)(mgos_bvar_t parent, mgos_bvar_t chil
 int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_func, mgos_bvar_t filter) {
   int count = 0;
   if (walk_func && var) {
-    LOG(LL_INFO, ("      Walking keys of %d...", (int)var));
     struct mg_bvar_dic_key_item *key_item = var->key_items;
     while (key_item) {
       if (!filter ||(filter == key_item->parent_dic)) {
-        LOG(LL_INFO, ("        Checking key %d...", (int)key_item));
         ++count;
-        LOG(LL_INFO, ("        Invoking walk_func->%d(%d, %d, %d)...", (int)walk_func, (int)key_item->parent_dic, (int)var, (int)key_item));
         if (walk_func(key_item->parent_dic, var, key_item) == false) { break; }
-        LOG(LL_INFO, ("        Invoking walk_func(...) done."));
-        LOG(LL_INFO, ("        Checking key %d done.", (int)key_item));
       }
       key_item = key_item->next_item;
     }
-    LOG(LL_INFO, ("      Walking keys of %d done.", (int)var));
   }
   return count;
 }
@@ -270,82 +263,54 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
   return NULL;
 }
 
-bool mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t var,
-                                struct mg_bvar_dic_key_item *key_item) {
-  LOG(LL_INFO, ("    Checking parent %d...", (int)parent));
-  --parent->value.dic_head.count;  // decrease dic length
-  LOG(LL_INFO, ("    Setting changed..."));
-  mg_bvar_set_changed(parent); // set dic as changed
-  LOG(LL_INFO, ("    Setting changed done."));
-
-  LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", (int)key_item->key->prev_var));
-  struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, parent);
-  LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", (int)key_item->key->next_var));
-  struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, parent);
-
-  // remove the the key form the key list of the var
-  LOG(LL_INFO, ("    Step #1..."));
-  if (key_item->prev_item) {
-    LOG(LL_INFO, ("    Step #1.1..."));
-    key_item->prev_item->next_item = key_item->next_item;
-    LOG(LL_INFO, ("    Step #1.2..."));
-    if (key_item->next_item) { key_item->next_item->prev_item = key_item->prev_item; }
-    LOG(LL_INFO, ("    Step #1.3..."));
-  } else {
-    LOG(LL_INFO, ("    Step #1.4..."));
-    var->key_items = key_item->next_item;
-    LOG(LL_INFO, ("    Step #1.5..."));
-    if (var->key_items) { var->key_items->prev_item = NULL; }
-    LOG(LL_INFO, ("    Step #1.6..."));
-  }
-  
-  if (prev_item && next_item) {
-    LOG(LL_INFO, ("    Removing in the middle..."));
-    prev_item->key->next_var = (next_item ? next_item->key->var : NULL);
-    next_item->key->prev_var = (prev_item ? prev_item->key->var : NULL);
-    LOG(LL_INFO, ("    Removing in the middle done."));
-  } else if (!prev_item && !next_item) {
-    // removing the only one key from dictionary
-    LOG(LL_INFO, ("    Removing the only one key from dictionary..."));
-    parent->value.dic_head.var = NULL;
-    LOG(LL_INFO, ("    Removing the only one key from dictionary done."));
-  } else if (!prev_item || !next_item) {
-    if (!prev_item) {
-      // removing the first key from dictionary
-      LOG(LL_INFO, ("    Removing the first key from dictionary..."));
-      parent->value.dic_head.var = next_item->key->var;
-      next_item->key->prev_var = parent;
-      LOG(LL_INFO, ("    Removing the first key from dictionary done."));
-    } else {
-      // removing the last key from dictionary
-      LOG(LL_INFO, ("    Removing the last key from dictionary..."));
-      prev_item->key->next_var = NULL;
-    }
-  }
-  
-  LOG(LL_INFO, ("    Executing free((char *)key_item->key->name)..."));
-  free((char *)key_item->key->name);
-  LOG(LL_INFO, ("    Executing free(key_item->key)..."));
-  free(key_item->key);
-  LOG(LL_INFO, ("    Executing free(key_item)..."));
-  free(key_item);
-  LOG(LL_INFO, ("    Returing 'false'..."));
-  return false;
-};
-
 void mg_bvar_dic_rem_key(mgos_bvar_t dic, mgos_bvar_t var) {
-  LOG(LL_INFO, ("   Walking parents..."));
-  mg_bvar_dic_walk_parents(var, mg_bvar_dic_rem_key_lambda, dic);
-  LOG(LL_INFO, ("   Walking parents done."));
+  bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t var, struct mg_bvar_dic_key_item *key_item) {
+    --parent->value.dic_head.count;  // decrease dic length
+    mg_bvar_set_changed(parent); // set dic as changed
+
+    struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, parent);
+    struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, parent);
+
+    // remove the the key form the key list of the var
+    if (key_item->prev_item) {
+      key_item->prev_item->next_item = key_item->next_item;
+      if (key_item->next_item) { key_item->next_item->prev_item = key_item->prev_item; }
+    } else {
+      var->key_items = key_item->next_item;
+      if (var->key_items) { var->key_items->prev_item = NULL; }
+    }
+    
+    if (prev_item && next_item) {
+      prev_item->key->next_var = (next_item ? next_item->key->var : NULL);
+      next_item->key->prev_var = (prev_item ? prev_item->key->var : NULL);
+    } else if (!prev_item && !next_item) {
+      // removing the only one key from dictionary
+      parent->value.dic_head.var = NULL;
+    } else if (!prev_item || !next_item) {
+      if (!prev_item) {
+        // removing the first key from dictionary
+        parent->value.dic_head.var = next_item->key->var;
+        next_item->key->prev_var = parent;
+      } else {
+        // removing the last key from dictionary
+        prev_item->key->next_var = NULL;
+      }
+    }
+    
+    free((char *)key_item->key->name);
+    free(key_item->key);
+    free(key_item);
+    return false;
+  };
+
+  mg_bvar_dic_walk_parents(var, on_parent_found, dic);
 }
 
 void mg_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
   if (mgos_bvar_is_dic(var)) {
     while (var->value.dic_head.var) { 
       mgos_bvar_t v = var->value.dic_head.var;
-      LOG(LL_INFO, ("  Removing var %d...", (int)v));
       mg_bvar_dic_rem_key(var, v);
-      LOG(LL_INFO, ("  Removed (%d).", (int)v));
       if (dispose) mgos_bvar_free(v);
     }
   }

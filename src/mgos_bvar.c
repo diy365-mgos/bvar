@@ -102,12 +102,18 @@ typedef bool (* mg_bvar_dic_walk_parents_t)(mgos_bvar_t parent, mgos_bvar_t chil
 int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_func) {
   int count = 0;
   if (walk_func && var) {
+    LOG(LL_INFO, ("      Walking keys of %d...", (int)var));
     struct mg_bvar_dic_key_item *key_item = var->key_items;
-    while (key_item) {    
+    while (key_item) {
+      LOG(LL_INFO, ("        Checking key %d...", (int)key_item));
       ++count;
-      if (!walk_func(key_item->parent_dic, var, key_item)) break;
+      LOG(LL_INFO, ("        Invoking walk_func(...)..."));
+      if (walk_func(key_item->parent_dic, var, key_item) == false) { break; }
+      LOG(LL_INFO, ("        Invoking walk_func(...) done."));
       key_item = key_item->next_item;
+      LOG(LL_INFO, ("        Checking key %d done.", (int)key_item));
     }
+    LOG(LL_INFO, ("      Walking keys of %d done.", (int)var));
   }
   return count;
 }

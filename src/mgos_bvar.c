@@ -307,13 +307,13 @@ bool mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t var,
   } else if (!prev_item && !next_item) {
     // removing the only one key from dictionary
     LOG(LL_INFO, ("    Removing the only one key from dictionary..."));
-    dic->value.dic_head.var = NULL;
+    parent->value.dic_head.var = NULL;
     LOG(LL_INFO, ("    Removing the only one key from dictionary done."));
   } else if (!prev_item || !next_item) {
     if (!prev_item) {
       // removing the first key from dictionary
       LOG(LL_INFO, ("    Removing the first key from dictionary..."));
-      dic->value.dic_head.var = next_item->key->var;
+      parent->value.dic_head.var = next_item->key->var;
       next_item->key->prev_var = parent;
       LOG(LL_INFO, ("    Removing the first key from dictionary done."));
     } else {

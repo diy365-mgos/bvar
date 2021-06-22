@@ -99,18 +99,20 @@ mgos_bvar_t mg_bvar_dic_get_parent(mgos_bvar_t var) {
 typedef bool (* mg_bvar_dic_walk_parents_t)(mgos_bvar_t parent, mgos_bvar_t child,
                                             struct mg_bvar_dic_key_item *key_item);
 
-int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_func) {
+int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_func, mgos_bvar_t filter) {
   int count = 0;
   if (walk_func && var) {
     LOG(LL_INFO, ("      Walking keys of %d...", (int)var));
     struct mg_bvar_dic_key_item *key_item = var->key_items;
     while (key_item) {
-      LOG(LL_INFO, ("        Checking key %d...", (int)key_item));
-      ++count;
-      LOG(LL_INFO, ("        Invoking walk_func->%d(%d, %d, %d)...", (int)walk_func, (int)key_item->parent_dic, (int)var, (int)key_item));
-      if (walk_func(key_item->parent_dic, var, key_item) == false) { break; }
-      LOG(LL_INFO, ("        Invoking walk_func(...) done."));
-      LOG(LL_INFO, ("        Checking key %d done.", (int)key_item));
+      if (!filter ||(filter == key_item->parent_dic)) {
+        LOG(LL_INFO, ("        Checking key %d...", (int)key_item));
+        ++count;
+        LOG(LL_INFO, ("        Invoking walk_func->%d(%d, %d, %d)...", (int)walk_func, (int)key_item->parent_dic, (int)var, (int)key_item));
+        if (walk_func(key_item->parent_dic, var, key_item) == false) { break; }
+        LOG(LL_INFO, ("        Invoking walk_func(...) done."));
+        LOG(LL_INFO, ("        Checking key %d done.", (int)key_item));
+      }
       key_item = key_item->next_item;
     }
     LOG(LL_INFO, ("      Walking keys of %d done.", (int)var));
@@ -128,7 +130,7 @@ void mg_bvar_set_changed(mgos_bvar_t var) {
     mg_bvar_set_changed(parent);
     return true;
 	};
-  mg_bvar_dic_walk_parents(var, on_parent_found);
+  mg_bvar_dic_walk_parents(var, on_parent_found, NULL);
   
   if (mgos_bvar_is_dic(var)) {
     ++var->changed;
@@ -268,13 +270,8 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
   return NULL;
 }
 
-bool mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t child,
+void mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t child,
                                 struct mg_bvar_dic_key_item *key_item) {
-  LOG(LL_INFO, ("    Pre-check of parent %d...", (int)parent));
-  if (parent != dic) {
-    LOG(LL_INFO, ("    Parent %d ignored.", (int)parent));
-    return true;
-  }
   LOG(LL_INFO, ("    Checking parent %d...", (int)parent));
   --parent->value.dic_head.count;  // decrease dic length
   LOG(LL_INFO, ("    Setting changed..."));
@@ -338,7 +335,7 @@ bool mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t child,
 
 void mg_bvar_dic_rem_key(mgos_bvar_t dic, mgos_bvar_t var) {
   LOG(LL_INFO, ("   Walking parents..."));
-  mg_bvar_dic_walk_parents(var, mg_bvar_dic_rem_key_lambda);
+  mg_bvar_dic_walk_parents(var, mg_bvar_dic_rem_key_lambda, dic);
   LOG(LL_INFO, ("   Walking parents done."));
 }
 
@@ -737,7 +734,7 @@ void mg_bvar_set_asc_unchanged(mgos_bvar_t var, char flag) {
     mg_bvar_set_asc_unchanged(parent, 1);
     return true;
   };
-  mg_bvar_dic_walk_parents(var, on_parent_found);
+  mg_bvar_dic_walk_parents(var, on_parent_found, NULL);
 
   if (flag == 1) --var->changed;
 }

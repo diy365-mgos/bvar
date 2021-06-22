@@ -265,20 +265,20 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
 void mg_bvar_dic_rem_key(mgos_bvar_t dic, mgos_bvar_t var) {
   bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
                        struct mg_bvar_dic_key_item *key_item) {
-    LOG(LL_INFO, ("    Pre-check of parent %d...", parent));
+    LOG(LL_INFO, ("    Pre-check of parent %d...", (int)parent));
     if (parent != dic) {
-      LOG(LL_INFO, ("    Parent %d ignored.", parent));
+      LOG(LL_INFO, ("    Parent %d ignored.", (int)parent));
       return true;
     }
-    LOG(LL_INFO, ("    Checking parent %d...", parent));
+    LOG(LL_INFO, ("    Checking parent %d...", (int)parent));
     --parent->value.dic_head.count;  // decrease dic length
     LOG(LL_INFO, ("    Setting changed..."));
     mg_bvar_set_changed(parent); // set dic as changed
     LOG(LL_INFO, ("    Setting changed done."));
 
-    LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", key_item->key->prev_var));
+    LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", (int)key_item->key->prev_var));
     struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, dic);
-    LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", key_item->key->next_var));
+    LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", (int)key_item->key->next_var));
     struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, dic);
 
     // remove the the key form the key list of the var
@@ -339,9 +339,9 @@ void mg_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
   if (mgos_bvar_is_dic(var)) {
     while (var->value.dic_head.var) { 
       mgos_bvar_t v = var->value.dic_head.var;
-      LOG(LL_INFO, ("  Removing var %d...", v));
+      LOG(LL_INFO, ("  Removing var %d...", (int)v));
       mg_bvar_dic_rem_key(var, v);
-      LOG(LL_INFO, ("  Removed (%d).", v));
+      LOG(LL_INFO, ("  Removed (%d).", (int)v));
       if (dispose) mgos_bvar_free(v);
     }
   }

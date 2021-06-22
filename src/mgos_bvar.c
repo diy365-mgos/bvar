@@ -107,7 +107,7 @@ int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_fu
     while (key_item) {
       LOG(LL_INFO, ("        Checking key %d...", (int)key_item));
       ++count;
-      LOG(LL_INFO, ("        Invoking walk_func(%d, %d, %d)...", key_item->parent_dic, var, key_item));
+      LOG(LL_INFO, ("        Invoking walk_func->%d(%d, %d, %d)...", (int)walk_func, (int)key_item->parent_dic, (int)var, (int)key_item));
       if (walk_func(key_item->parent_dic, var, key_item) == false) { break; }
       LOG(LL_INFO, ("        Invoking walk_func(...) done."));
       LOG(LL_INFO, ("        Checking key %d done.", (int)key_item));

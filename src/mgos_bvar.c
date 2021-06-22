@@ -270,7 +270,7 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
   return NULL;
 }
 
-void mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t child,
+bool mg_bvar_dic_rem_key_lambda(mgos_bvar_t parent, mgos_bvar_t child,
                                 struct mg_bvar_dic_key_item *key_item) {
   LOG(LL_INFO, ("    Checking parent %d...", (int)parent));
   --parent->value.dic_head.count;  // decrease dic length

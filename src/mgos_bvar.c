@@ -235,12 +235,7 @@ bool mg_bvar_dic_add(mgos_bvar_t root, const char *key_name, size_t key_len, mgo
   ++root->value.dic_head.count;
   // set dictionary as changed
   mg_bvar_set_changed(root);
- 
-  new_key_item = var->key_items;
-  while (new_key_item) {
-    new_key_item = new_key_item->next_item;
-  }
-  
+
   return true;
 }
 
@@ -269,63 +264,83 @@ mgos_bvar_t mg_bvar_dic_get(mgos_bvar_t root, const char *key_name, size_t key_l
 void mg_bvar_dic_rem_key(mgos_bvar_t dic, mgos_bvar_t var) {
   bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
                        struct mg_bvar_dic_key_item *key_item) {
-    if (parent != dic) return true;
-    --parent->value.dic_head.count;  // decrease dic length
-    mg_bvar_set_changed(parent); // set dic as changed
-
-    struct mg_bvar_dic_key_item *new_key_item = var->key_items;
-    while (new_key_item) {
-      new_key_item = new_key_item->next_item;
+    LOG(LL_INFO, ("    Pre-check of parent %d...", parent));
+    if (parent != dic) {
+      LOG(LL_INFO, ("    Parent %d ignored.", parent));
+      return true;
     }
-  
+    LOG(LL_INFO, ("    Checking parent %d...", parent));
+    --parent->value.dic_head.count;  // decrease dic length
+    LOG(LL_INFO, ("    Setting changed..."));
+    mg_bvar_set_changed(parent); // set dic as changed
+    LOG(LL_INFO, ("    Setting changed done."));
+
+    LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", key_item->key->prev_var));
     struct mg_bvar_dic_key_item *prev_item = mg_bvar_dic_get_key_item(key_item->key->prev_var, dic);
+    LOG(LL_INFO, ("    Getting mg_bvar_dic_get_key_item(%d)...", key_item->key->next_var));
     struct mg_bvar_dic_key_item *next_item = mg_bvar_dic_get_key_item(key_item->key->next_var, dic);
 
     // remove the the key form the key list of the var
+    LOG(LL_INFO, ("    Step #1..."));
     if (key_item->prev_item) {
+      LOG(LL_INFO, ("    Step #1.1..."));
       key_item->prev_item->next_item = key_item->next_item;
+      LOG(LL_INFO, ("    Step #1.2..."));
       if (key_item->next_item) { key_item->next_item->prev_item = key_item->prev_item; }
+      LOG(LL_INFO, ("    Step #1.3..."));
     } else {
+      LOG(LL_INFO, ("    Step #1.4..."));
       var->key_items = key_item->next_item;
+      LOG(LL_INFO, ("    Step #1.5..."));
       if (var->key_items) { var->key_items->prev_item = NULL; }
+      LOG(LL_INFO, ("    Step #1.6..."));
     }
     
     if (prev_item && next_item) {
+      LOG(LL_INFO, ("    Removing in the middle..."));
       prev_item->key->next_var = (next_item ? next_item->key->var : NULL);
       next_item->key->prev_var = (prev_item ? prev_item->key->var : NULL);
+      LOG(LL_INFO, ("    Removing in the middle done."));
     } else if (!prev_item && !next_item) {
       // removing the only one key from dictionary
+      LOG(LL_INFO, ("    Removing the only one key from dictionary..."));
       dic->value.dic_head.var = NULL;
+      LOG(LL_INFO, ("    Removing the only one key from dictionary done."));
     } else if (!prev_item || !next_item) {
       if (!prev_item) {
         // removing the first key from dictionary
+        LOG(LL_INFO, ("    Removing the first key from dictionary..."));
         dic->value.dic_head.var = next_item->key->var;
         next_item->key->prev_var = parent;
+        LOG(LL_INFO, ("    Removing the first key from dictionary done."));
       } else {
         // removing the last key from dictionary
+        LOG(LL_INFO, ("    Removing the last key from dictionary..."));
         prev_item->key->next_var = NULL;
       }
     }
-      
-    free((char *)key_item->key->name);
-    free(key_item->key);
-    free(key_item);
-
-    new_key_item = var->key_items;
-    while (new_key_item) {
-      new_key_item = new_key_item->next_item;
-    }
     
+    LOG(LL_INFO, ("    Executing free((char *)key_item->key->name)..."));
+    free((char *)key_item->key->name);
+    LOG(LL_INFO, ("    Executing free(key_item->key)..."));
+    free(key_item->key);
+    LOG(LL_INFO, ("    Executing free(key_item)..."));
+    free(key_item);
+    LOG(LL_INFO, ("    Returing 'false'..."));
     return false;
 	};
+  LOG(LL_INFO, ("   Walking parents..."));
   mg_bvar_dic_walk_parents(var, on_parent_found);
+  LOG(LL_INFO, ("   Walking parents done."));
 }
 
 void mg_bvar_remove_keys(mgos_bvar_t var, bool dispose) {
   if (mgos_bvar_is_dic(var)) {
-    while (var->value.dic_head.var) {
+    while (var->value.dic_head.var) { 
       mgos_bvar_t v = var->value.dic_head.var;
+      LOG(LL_INFO, ("  Removing var %d...", v));
       mg_bvar_dic_rem_key(var, v);
+      LOG(LL_INFO, ("  Removed (%d).", v));
       if (dispose) mgos_bvar_free(v);
     }
   }

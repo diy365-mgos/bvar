@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "mgos_bvar.h"
+#include "mgos.h"
 
 #ifdef MGOS_BVAR_HAVE_JSON
 #include "mgos_bvar_json.h"

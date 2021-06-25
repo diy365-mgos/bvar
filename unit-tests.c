@@ -22,6 +22,16 @@
     if (!(expr)) FAIL(#expr, __LINE__); \
   } while (0)
 
+#ifdef MG_BVAR_MEMLEAKS_CHECK
+#define ASSERT_IF_MEMLEAKS                                                    \
+  if (mg_bvar_has_memleaks()) {                                                \
+    printf("HOT: Memory leaks detected: %d not disposed.\n", mg_bvar_get_memleaks());  \
+  }                                                                           \
+  ASSERT(!mg_bvar_has_memleaks())
+#else
+#define ASSERT_IF_MEMLEAKS (NULL)
+#endif
+
 int main()
 {
   printf("Tests in progress...\n");
@@ -58,6 +68,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str("Mark");
   ASSERT(strcmp(mgos_bvar_get_str(v1), "Mark") == 0);
@@ -68,24 +79,28 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 0);
   ASSERT(mgos_bvar_is_null(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_integer(101);
   ASSERT(mgos_bvar_get_integer(v1) == 101);
   ASSERT(mgos_bvar_get_decimal(v1) == 101.00);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_decimal(101.10);
   ASSERT(mgos_bvar_get_decimal(v1) == 101.10);
   ASSERT(mgos_bvar_get_integer(v1) == 101);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_bool(true);
   ASSERT(mgos_bvar_get_bool(v1) == true);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_set_decimal(v1, 101.10);
   ASSERT(mgos_bvar_is_changed(v1));
@@ -93,7 +108,8 @@ int main()
   mgos_bvar_set_decimal(v1, 101.10);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_set_integer(v1, 101);
   ASSERT(mgos_bvar_is_changed(v1));
@@ -101,7 +117,8 @@ int main()
   mgos_bvar_set_integer(v1, 101);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_set_bool(v1, false);
   ASSERT(mgos_bvar_is_changed(v1));
@@ -109,7 +126,8 @@ int main()
   mgos_bvar_set_bool(v1, false);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_set_str(v1, NULL);
   ASSERT(!mgos_bvar_is_changed(v1));
@@ -125,24 +143,28 @@ int main()
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   ASSERT(mgos_bvar_get_type(v1) == MGOS_BVAR_TYPE_NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(101.10);
   mgos_bvar_clear(v1);
   ASSERT(mgos_bvar_is_changed(v1));
   ASSERT(mgos_bvar_get_decimal(v1) == 0);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_integer(101);
   mgos_bvar_clear(v1);
   ASSERT(mgos_bvar_is_changed(v1));
   ASSERT(mgos_bvar_get_integer(v1) == 0);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_bool(true);
   mgos_bvar_clear(v1);
   ASSERT(mgos_bvar_is_changed(v1));
   ASSERT(mgos_bvar_get_bool(v1) == false);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str("Mark");
   ASSERT(mgos_bvar_length(v1) == strlen(mgos_bvar_get_str(v1)));
@@ -151,6 +173,7 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(v1), "") == 0);
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_set_decimal(v1, 101.10);
@@ -160,6 +183,7 @@ int main()
   mgos_bvar_set_decimal(v1, 0.0);
   ASSERT(mgos_bvar_get_bool(v1) == false);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_set_integer(v1, 101);
@@ -169,6 +193,7 @@ int main()
   mgos_bvar_set_integer(v1, 0);
   ASSERT(mgos_bvar_get_bool(v1) == false);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_set_str(v1, "Mark");
@@ -178,11 +203,13 @@ int main()
   mgos_bvar_set_str(v1, NULL);
   ASSERT(mgos_bvar_get_bool(v1) == false);
   mgos_bvar_free(v1);
-   
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   ASSERT(mgos_bvar_get_bool(v1) == false);
   mgos_bvar_free(v1);
-   
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_str("same");
   ASSERT(strcmp(mgos_bvar_get_str(v1), "same") == 0);
   mgos_bvar_set_str(v1, "same_name_and_surname");
@@ -190,6 +217,7 @@ int main()
   mgos_bvar_set_str(v1, "same_name");
   ASSERT(strcmp(mgos_bvar_get_str(v1), "same_name") == 0);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_set_str(v1, "Mark1");
@@ -201,6 +229,7 @@ int main()
   mgos_bvar_set_null(v1);
   ASSERT(mgos_bvar_is_null(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   ASSERT(mgos_bvar_cmp(NULL, NULL) == MGOS_BVAR_CMP_RES_EQUAL);
   
@@ -209,6 +238,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(10.00);
   v2 = mgos_bvar_new_integer(10);
@@ -218,6 +248,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_MAJOR);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   v2 = mgos_bvar_new();
@@ -226,6 +257,7 @@ int main()
   ASSERT(mgos_bvar_cmp(NULL, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str("A");
   v2 = mgos_bvar_new_str("B");
@@ -235,6 +267,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_integer(10);
   v2 = mgos_bvar_new_integer(20);
@@ -244,6 +277,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(10.22);
   v2 = mgos_bvar_new_decimal(20.22);
@@ -253,6 +287,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_bool(false);
   v2 = mgos_bvar_new_bool(true);
@@ -262,6 +297,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str("Marco");
   v2 = mgos_bvar_new();
@@ -269,6 +305,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_integer(124);
   v2 = mgos_bvar_new();
@@ -276,6 +313,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(123.88);
   v2 = mgos_bvar_new();
@@ -283,6 +321,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_bool(true);
   v2 = mgos_bvar_new();
@@ -290,19 +329,22 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_integer(1001);
   v2 = mgos_bvar_new_integer(1001);
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(1001);
   v2 = mgos_bvar_new_decimal(1001.00);
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_bool(true);
   v2 = mgos_bvar_new_bool(false);
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_MAJOR);
@@ -310,6 +352,7 @@ int main()
   ASSERT(mgos_bvar_get_bool(v2) == false);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_bool(true);
   v2 = mgos_bvar_new_bool(true);
@@ -317,6 +360,7 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str("Mark");
   v2 = mgos_bvar_new_str("Mark");
@@ -324,6 +368,7 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_integer(101);
   v2 = mgos_bvar_new_integer(101);
@@ -331,6 +376,7 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(12.33);
   v2 = mgos_bvar_new_decimal(12.33);
@@ -338,7 +384,8 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   #ifdef MGOS_BVAR_HAVE_JSON
 
   v1 = mgos_bvar_new_str("Mark");
@@ -346,73 +393,87 @@ int main()
   ASSERT(strcmp(json, "\"Mark\"") == 0);
   mgos_bvar_free(v1);
   free(json);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str(NULL);
   json = json_asprintf("%M", json_printf_bvar, v1);
   ASSERT(strcmp(json, "null") == 0);
   mgos_bvar_free(v1);
   free(json);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_integer(234);
   json = json_asprintf("%M", json_printf_bvar, v1);
   ASSERT(strcmp(json, "234") == 0);
   mgos_bvar_free(v1);
   free(json);
-   
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_bool(true);
   json = json_asprintf("%M", json_printf_bvar, v1);
   ASSERT(strcmp(json, "true") == 0);
   mgos_bvar_free(v1);
   free(json);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(122.20);
   json = json_asprintf("%M", json_printf_bvar, v1);
   ASSERT(strcmp(json, "122.200000") == 0);
   mgos_bvar_free(v1);
   free(json);
+  ASSERT_IF_MEMLEAKS;
   
-    v1 = mgos_bvar_json_scanf("234");
+  v1 = mgos_bvar_json_scanf("234");
   ASSERT(mgos_bvar_get_integer(v1) == 234);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("378.340");
   ASSERT(mgos_bvar_get_decimal(v1) == 378.34);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("true");
   ASSERT(mgos_bvar_get_bool(v1) == true);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_json_scanf("false");
   ASSERT(mgos_bvar_get_bool(v1) == false);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("null");
   ASSERT(mgos_bvar_is_null(v1));
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("\"AAA\"");
   ASSERT(strcmp(mgos_bvar_get_str(v1), "AAA") == 0);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("AAA");
   ASSERT(v1 == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("");
   ASSERT(v1 == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf(NULL);
   ASSERT(v1 == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   #if !MGOS_BVAR_HAVE_DIC
   
@@ -420,11 +481,13 @@ int main()
   ASSERT(v1 != NULL);
   ASSERT(mgos_bvar_is_null(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("{\"Name\":\"Mark\", \"Age\":46}");
   ASSERT(v1 != NULL);
   ASSERT(mgos_bvar_is_null(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   #endif // !MGOS_BVAR_HAVE_DIC
   
@@ -442,7 +505,7 @@ int main()
   ASSERT(mgos_bvar_is_changed(v1));
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
-  
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   ASSERT(mgos_bvar_is_dic(v1));
@@ -450,7 +513,8 @@ int main()
   ASSERT(!mgos_bvar_is_null(v1));
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_set_null(v1);
   ASSERT(!mgos_bvar_is_dic(v1));
@@ -458,18 +522,21 @@ int main()
   ASSERT(mgos_bvar_is_null(v1));
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_t v425 = mgos_bvar_new_str("Mark");
   ASSERT(mgos_bvar_add_key(v1, "Name", v425));
   ASSERT(!mgos_bvar_free(v425));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   ASSERT(mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark")));
   ASSERT(mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46)));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   v2 = mgos_bvar_new_dic();
   mgos_bvar_t v426 = mgos_bvar_new_str("Mark");
@@ -488,7 +555,8 @@ int main()
   ASSERT(!mgos_bvar_free(v427));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   v2 = mgos_bvar_new_dic();
   mgos_bvar_t v456 = mgos_bvar_new_str("Mark");
@@ -504,19 +572,22 @@ int main()
   ASSERT(!mgos_bvar_free(v456));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_delete_key(v1, "Name");
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_t v479 = mgos_bvar_new_str("Mark");
   mgos_bvar_add_key(v1, "Name1", v479);
   ASSERT(!mgos_bvar_add_key(v1, "Name2", v479));
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   ASSERT(mgos_bvarc_try_get_key(v1, "Name", &cv1) == true);
@@ -526,7 +597,8 @@ int main()
   mgos_bvar_set_str(v2, "Greg");
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v1, "Name")), "Greg") == 0);
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Surname", mgos_bvar_new_str("Smith"));
@@ -536,6 +608,7 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 0);
   ASSERT(!mgos_bvar_is_dic(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -547,7 +620,8 @@ int main()
   ASSERT(mgos_bvar_length(v1) == strlen(mgos_bvar_get_str(v1)));
   ASSERT(strcmp(mgos_bvar_get_str(v1), "Is not a dictionary") == 0);
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -555,6 +629,7 @@ int main()
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(v1, "Age")) == 46);
   ASSERT(mgos_bvar_length(v1) == 2);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
 
   v1 = mgos_bvar_new_dic();
   v2 = mgos_bvar_new_dic();
@@ -566,7 +641,8 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 2);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -578,6 +654,7 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 1);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Surname", mgos_bvar_new_str("Smith"));
@@ -589,7 +666,8 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v2, "Surname")), "Smith") == 0);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   v2 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v2, "Name", mgos_bvar_new_str("Mark"));
@@ -599,7 +677,8 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 2);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -610,7 +689,8 @@ int main()
   ASSERT(mgos_bvar_get_decimal(v1) == 124.67);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Surname", mgos_bvar_new_str("Smith"));
   v2 = mgos_bvar_new_dic();
@@ -620,12 +700,14 @@ int main()
   ASSERT(mgos_bvar_length(v1) == 3);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(v1, "Age")) == 46);
   ASSERT(mgos_bvar_length(v1) == 1);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -635,6 +717,7 @@ int main()
   mgos_bvar_clear(v1);
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_t v544 = mgos_bvar_new_str("Mark");
@@ -653,6 +736,7 @@ int main()
   ASSERT(mgos_bvar_free(v544));
   ASSERT(mgos_bvar_free(v545));
   ASSERT(mgos_bvar_free(v546));
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   ASSERT(!mgos_bvar_is_dic(v1));
@@ -663,7 +747,8 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v1, "Name")), "Mark") == 0);
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new_bool(false);
   ASSERT(!mgos_bvar_is_dic(v1));
   ASSERT(mgos_bvar_get_type(v1) == MGOS_BVAR_TYPE_BOOL);
@@ -673,6 +758,7 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v1, "Name")), "Mark") == 0);
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_str("Mark");
   ASSERT(!mgos_bvar_is_dic(v1));
@@ -683,6 +769,7 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v1, "Name")), "Mark") == 0);
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
  
   v1 = mgos_bvar_new_integer(1001);
   ASSERT(!mgos_bvar_is_dic(v1));
@@ -693,6 +780,7 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v1, "Name")), "Mark") == 0);
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_decimal(12.44);
   ASSERT(!mgos_bvar_is_dic(v1));
@@ -703,6 +791,7 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(v1, "Name")), "Mark") == 0);
   ASSERT(mgos_bvar_get_str(v1) == NULL);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -723,6 +812,7 @@ int main()
   ASSERT(!mgos_bvar_has_key(v1, "Name"));
   mgos_bvar_delete_key(v1, "City");
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_t v630 = mgos_bvar_new_str("Mark");
@@ -737,14 +827,16 @@ int main()
   ASSERT(mgos_bvar_get_integer(v631) == 46);
   ASSERT(mgos_bvar_free(v630));
   ASSERT(mgos_bvar_free(v631));
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   ASSERT(!mgos_bvar_is_dic(v1));
   e1 = mgos_bvar_get_keys(v1);
   ASSERT(e1 == NULL);
   ASSERT(mgos_bvarc_get_next_key(&e1, NULL, NULL) == false);
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -752,6 +844,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v1, v2) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -765,7 +858,8 @@ int main()
   ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(70.22));
@@ -776,6 +870,7 @@ int main()
   ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -788,7 +883,8 @@ int main()
   ASSERT(mgos_bvar_cmp(v2, v1) == MGOS_BVAR_CMP_RES_NOT_EQUAL);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-   
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Weigth", mgos_bvar_new_decimal(90.2));
@@ -800,7 +896,8 @@ int main()
   ASSERT(mgos_bvar_cmp(v2, v1) == (MGOS_BVAR_CMP_RES_EQUAL|MGOS_BVAR_CMP_RES_MAJOR));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -816,6 +913,7 @@ int main()
     ASSERT(i == mgos_bvar_length(v1));
   }
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -832,7 +930,8 @@ int main()
     ASSERT(i == mgos_bvar_length(v1));
   }
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Surname", mgos_bvar_new_str("Smith"));
@@ -848,7 +947,8 @@ int main()
   mgos_bvar_free(mgos_bvar_get_key(v1, "Surname")); // remove single item
   ASSERT(mgos_bvar_length(v1) == 4);
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -863,6 +963,7 @@ int main()
   ASSERT(mgos_bvar_length(v2) == 2);
   ASSERT(mgos_bvar_has_key(v2, "Employee"));
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -878,7 +979,6 @@ int main()
   mgos_bvar_add_key(v2, "Employee", v1);
   ASSERT(mgos_bvar_is_changed(v2));  mgos_bvar_set_unchanged(v2);
   ASSERT(!mgos_bvar_is_changed(v2));
-  
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_set_integer(mgos_bvar_get_key(mgos_bvar_get_key(v2, "Employee"), "Code"), 888);
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(v1, "Code")) == 888);
@@ -886,11 +986,13 @@ int main()
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new_dic();
   mgos_bvar_clear(v1);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -899,13 +1001,15 @@ int main()
   mgos_bvar_clear(v1);
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_set_unchanged(v1);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -913,6 +1017,7 @@ int main()
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -920,6 +1025,7 @@ int main()
   mgos_bvar_delete_key(v1, "Name");
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -927,6 +1033,7 @@ int main()
   ASSERT(!mgos_bvar_free(mgos_bvar_get_key(v1, "Name")));
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -938,6 +1045,7 @@ int main()
   mgos_bvar_set_unchanged(v2);
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -947,6 +1055,7 @@ int main()
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -959,6 +1068,7 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
    v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -968,6 +1078,7 @@ int main()
   ASSERT(mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -980,6 +1091,7 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
@@ -992,6 +1104,7 @@ int main()
   ASSERT(!mgos_bvar_is_changed(v2));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   mgos_bvar_t v958 = mgos_bvar_new_str("Mark");
   v1 = mgos_bvar_new();
@@ -1023,6 +1136,7 @@ int main()
   mgos_bvar_free(v1);
   ASSERT(!mgos_bvar_free(v3));
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_t v943 = mgos_bvar_new_str("Mark");
@@ -1055,6 +1169,7 @@ int main()
   ASSERT(mgos_bvar_free(v945));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
   
   #ifdef MGOS_BVAR_HAVE_JSON
 
@@ -1068,7 +1183,8 @@ int main()
   ASSERT(strcmp(json, "{\"Name\":\"Mark\",\"Surname\":null,\"Age\":46,\"Weigth\":102.440000,\"Enable\":true}") == 0);
   mgos_bvar_free(v1);
   free(json);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_new();
   mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
   mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
@@ -1080,6 +1196,7 @@ int main()
   ASSERT(strcmp(json, "{\"Name\":\"Mark\",\"Age\":46,\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80}}") == 0);
   mgos_bvar_free(v1);
   free(json);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   mgos_bvar_t v1000 = mgos_bvar_new_str("Mark");
@@ -1094,11 +1211,13 @@ int main()
   ASSERT(strcmp(json, "{\"Name\":\"Mark\",\"Age\":46,\"Fhater\":{\"Name\":\"Mark\",\"Age\":46}}") == 0);
   mgos_bvar_free(v1);
   free(json);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_json_scanf("{\"Name\":\"Mark\",\"Surname\":null,\"Age\":46,\"Weigth\":102.440000,\"Enable\":true}");
   ASSERT(!mgos_bvar_is_changed(v1));
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_json_scanf("{\"Name\":\"Mark\",\"Surname\":null,\"Age\":46,\"Weigth\":102.440000,\"Enable\":true}");
   ASSERT(mgos_bvar_is_dic(v1));
   ASSERT(mgos_bvar_length(v1) == 5);
@@ -1108,11 +1227,13 @@ int main()
   ASSERT(mgos_bvar_get_decimal(mgos_bvarc_get_key(v1, "Weigth")) == 102.44);
   ASSERT(mgos_bvar_get_bool(mgos_bvarc_get_key(v1, "Enable")) == true);
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_json_scanf("{\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80}}");
   ASSERT(!mgos_bvar_is_changed(v1));
   ASSERT(!mgos_bvar_is_changed(mgos_bvarc_get_key(v1, "Fhater")));
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("{\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80}}");
   ASSERT(mgos_bvar_is_dic(v1));
@@ -1123,7 +1244,8 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(cv1, "Name")), "Gregory") == 0);
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(cv1, "Age")) == 80);
   mgos_bvar_free(v1);
-
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_json_scanf("{\"Name\":\"Mark\",\"Age\":46,\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80}}");
   ASSERT(mgos_bvar_is_dic(v1));
   ASSERT(mgos_bvar_length(v1) == 3);
@@ -1135,6 +1257,7 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(cv1, "Name")), "Gregory") == 0);
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(cv1, "Age")) == 80);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("{\"Name\":\"Mark\",\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80},\"Age\":46}");
   ASSERT(mgos_bvar_is_dic(v1));
@@ -1147,7 +1270,8 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(cv1, "Name")), "Gregory") == 0);
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(cv1, "Age")) == 80);
   mgos_bvar_free(v1);
- 
+  ASSERT_IF_MEMLEAKS;
+  
   v1 = mgos_bvar_json_scanf("{\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80},\"Age\":46,\"Name\":\"Mark\"}");
   ASSERT(mgos_bvar_is_dic(v1));
   ASSERT(mgos_bvar_length(v1) == 3);
@@ -1159,12 +1283,14 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(cv1, "Name")), "Gregory") == 0);
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(cv1, "Age")) == 80);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("{}");
   ASSERT(v1 != NULL);
   ASSERT(mgos_bvar_is_dic(v1));
   ASSERT(mgos_bvar_length(v1) == 0);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_json_scanf("{\"Name\":\"Mark\",\"Fhater\":{\"Name\":\"Gregory\",\"Age\":80, \"Mother\":{\"Name\":\"Mary\",\"Age\":79}},\"Age\":46}");
   ASSERT(mgos_bvar_is_dic(v1));
@@ -1181,10 +1307,13 @@ int main()
   ASSERT(strcmp(mgos_bvar_get_str(mgos_bvarc_get_key(cv1, "Name")), "Mary") == 0);
   ASSERT(mgos_bvar_get_integer(mgos_bvarc_get_key(cv1, "Age")) == 79);
   mgos_bvar_free(v1);
+  ASSERT_IF_MEMLEAKS;
   
   #endif // MGOS_BVAR_HAVE_JSON
 
   #endif // MGOS_BVAR_HAVE_DIC
+  
+  ASSERT_IF_MEMLEAKS;
   
   printf("Tests successfully completed!");
   

@@ -15,6 +15,40 @@
 #include "mjs.h"
 #endif /* MGOS_HAVE_MJS */
 
+#ifdef MG_BVAR_MEMLEAKS_CHECK
+int MG_BVAR_MEMLEACKS = 0;
+char *mg_bvar_strdup_hook(const char *str) {
+  char *r = strdup(str); 
+  if (r) ++MG_BVAR_MEMLEACKS;
+  return r;
+}
+char *mg_bvar_strndup_hook(const char *str, size_t size) {
+  char *r = strndup(str, size); 
+  if (r) ++MG_BVAR_MEMLEACKS;
+  return r;
+}
+void *mg_bvar_malloc_hook(size_t size) {
+  void *r = malloc(size); 
+  if (r) ++MG_BVAR_MEMLEACKS;
+  return r;
+}
+void *mg_bvar_calloc_hook(size_t nitems, size_t size) {
+  void *r = calloc(nitems, size); 
+  if (r) ++MG_BVAR_MEMLEACKS;
+  return r;
+}
+void mg_bvar_free_hook(void *p) {
+  if (p) --MG_BVAR_MEMLEACKS;
+  free(p); 
+}
+int mg_bvar_get_memleaks() {
+  return MG_BVAR_MEMLEACKS;
+}
+bool mg_bvar_has_memleaks() {
+  return (mg_bvar_get_memleaks() != 0);
+}
+#endif //MG_BVAR_MEMLEAKS_CHECK
+
 #ifdef MGOS_BVAR_HAVE_DIC
 struct mg_bvar_dic_key {
   const char* name;
@@ -146,7 +180,7 @@ void mg_bvar_close(mgos_bvar_t var, bool free_str) {
     if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) {
       if (free_str) {
         mg_bvar_set_changed(var);
-        free(var->value.s);
+        MG_BVAR_FREE(var->value.s);
       } else {
         if (strlen(var->value.s) > 0) {
           mg_bvar_set_changed(var);
@@ -204,7 +238,7 @@ bool mg_bvar_dic_add(mgos_bvar_t root, const char *key_name, size_t key_len, mgo
   };
   
   // init the new key
-  struct mg_bvar_dic_key_item *new_key_item = calloc(1, sizeof(struct mg_bvar_dic_key_item));
+  struct mg_bvar_dic_key_item *new_key_item = MG_BVAR_CALLOC(1, sizeof(struct mg_bvar_dic_key_item));
   new_key_item->parent_dic = root;
   if (!var->key_items) {
     var->key_items = new_key_item;
@@ -215,11 +249,11 @@ bool mg_bvar_dic_add(mgos_bvar_t root, const char *key_name, size_t key_len, mgo
     var->key_items = new_key_item;
   }
   
-  new_key_item->key = calloc(1, sizeof(struct mg_bvar_dic_key));
+  new_key_item->key = MG_BVAR_CALLOC(1, sizeof(struct mg_bvar_dic_key));
   if (key_len == -1) {
-    new_key_item->key->name = strdup(key_name);
+    new_key_item->key->name = MG_BVAR_STRDUP(key_name);
   } else {
-    new_key_item->key->name = malloc(key_len + 1);
+    new_key_item->key->name = MG_BVAR_MALLOC(key_len + 1);
     strncpy((char *)new_key_item->key->name, key_name, key_len);
     ((char *)new_key_item->key->name)[key_len] = '\0';
   }
@@ -297,9 +331,9 @@ void mg_bvar_dic_rem_key(mgos_bvar_t dic, mgos_bvar_t var) {
       }
     }
     
-    free((char *)key_item->key->name);
-    free(key_item->key);
-    free(key_item);
+    MG_BVAR_FREE((char *)key_item->key->name);
+    MG_BVAR_FREE(key_item->key);
+    MG_BVAR_FREE(key_item);
     return false;
   };
 
@@ -469,7 +503,7 @@ bool mgos_bvar_is_null(mgos_bvarc_t var) {
 }
 
 mgos_bvar_t mgos_bvar_new() {
-  return (mgos_bvar_t)calloc(1, sizeof(struct mg_bvar));
+  return (mgos_bvar_t)MG_BVAR_CALLOC(1, sizeof(struct mg_bvar));
 }
 
 mgos_bvar_t mgos_bvar_new_integer(long value) {
@@ -669,20 +703,31 @@ void mgos_bvar_set_nstr(mgos_bvar_t var, const char *value, size_t value_len) {
   
   if (value_len == -1) value_len = strlen(value);
   
-  if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR && value_len < var->v_size) {
+  if (mgos_bvar_get_type(var) == MGOS_BVAR_TYPE_STR) {
     // re-use previously allocated buffer
-    if (strncmp(var->value.s, value, value_len) != 0 || value_len != strlen(var->value.s)) {
-      strncpy(var->value.s, value, value_len);
-      var->value.s[value_len] = '\0';
-      mg_bvar_set_changed(var);
+    char *ext_buff = NULL;
+    if (value_len >= var->v_size) {
+      // try to extend previously allocated buffer
+      ext_buff = realloc(var->value.s, (value_len + 1));
+      if (ext_buff) {
+        var->value.s = ext_buff;
+        var->v_size = (value_len + 1);
+      }
     }
-    return;
+    if (value_len < var->v_size) {
+      if (ext_buff || (strncmp(var->value.s, value, value_len) != 0 || value_len != strlen(var->value.s))) {
+        strncpy(var->value.s, value, value_len);
+        var->value.s[value_len] = '\0';
+        mg_bvar_set_changed(var);
+      }
+      return;
+    }
   }
 
   mg_bvar_close(var, true);
   mg_bvar_set_type(var, MGOS_BVAR_TYPE_STR);
   if (value) {
-    var->value.s = strndup(value, value_len);
+    var->value.s = MG_BVAR_STRNDUP(value, value_len);
     var->v_size = (value_len + 1);
   }
   mg_bvar_set_changed(var);
@@ -864,7 +909,7 @@ bool mgos_bvar_free(mgos_bvar_t var) {
   #endif
   
   mg_bvar_close(var, true);
-  free(var);
+  MG_BVAR_FREE(var);
   return true;
 }
 

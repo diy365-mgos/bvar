@@ -21,7 +21,7 @@
 /* Uncomment lines below for running unit tests
  * (run unit-tests.c)
  */
-//#define MG_BVAR_MEMLEAKS_CHECK 1
+//#define MGOS_BVAR_MEMLEAKS_CHECK 1
 //#define MGOS_BVAR_HAVE_DIC 1
 //#define MGOS_BVAR_HAVE_JSON 1
 
@@ -36,28 +36,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifdef MG_BVAR_MEMLEAKS_CHECK
-char *mg_bvar_strdup_hook(const char *str);
-char *mg_bvar_strndup_hook(const char *str, size_t size);
-void *mg_bvar_malloc_hook(size_t size);
-void *mg_bvar_calloc_hook(size_t nitems, size_t size);
-void mg_bvar_free_hook(void *p);
-int mg_bvar_get_memleaks();
-bool mg_bvar_has_memleaks();
-
-#define MG_BVAR_STRDUP(arg) mg_bvar_strdup_hook(arg)
-#define MG_BVAR_STRNDUP(arg1, arg2) mg_bvar_strndup_hook(arg1, arg2)
-#define MG_BVAR_MALLOC(arg) mg_bvar_malloc_hook(arg)
-#define MG_BVAR_CALLOC(arg1, arg2) mg_bvar_calloc_hook(arg1, arg2)
-#define MG_BVAR_FREE(arg) mg_bvar_free_hook(arg)
-#else
-#define MG_BVAR_STRDUP(arg) strdup(arg)
-#define MG_BVAR_STRNDUP(arg1, arg2) strndup(arg1, arg2)
-#define MG_BVAR_MALLOC(arg) malloc(arg)
-#define MG_BVAR_CALLOC(arg1, arg2) calloc(arg1, arg2)
-#define MG_BVAR_FREE(arg) free(arg)
 #endif
 
 enum mgos_bvar_type {

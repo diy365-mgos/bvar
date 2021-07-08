@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "mgos_bvar.h"
+#include "mg_bvar_sdk.h"
 
 #ifdef MGOS_BVAR_HAVE_JSON
 #include "mgos_bvar_json.h"
@@ -22,7 +23,7 @@
     if (!(expr)) FAIL(#expr, __LINE__); \
   } while (0)
 
-#ifdef MG_BVAR_MEMLEAKS_CHECK
+#ifdef MGOS_BVAR_MEMLEAKS_CHECK
 #define ASSERT_IF_MEMLEAKS                                                    \
   if (mg_bvar_has_memleaks()) {                                                \
     printf("HOT: Memory leaks detected: %d not disposed.\n", mg_bvar_get_memleaks());  \
@@ -59,6 +60,31 @@ int main()
   
   ASSERT(mgos_bvar_is_null(v1));
   ASSERT(mgos_bvar_is_null(v2));
+  
+  // testing the dic_key_item store
+  mgos_bvar_t v62_1 = mgos_bvar_new();
+  mgos_bvar_t v62_2 = mgos_bvar_new();
+  mgos_bvar_t v62_3 = mgos_bvar_new();
+  mgos_bvar_t v62_4 = mgos_bvar_new();
+  mgos_bvar_t v62_5 = mgos_bvar_new();
+  mgos_bvar_t v62_6 = mgos_bvar_new();
+  mgos_bvar_t v62_7 = mgos_bvar_new();
+  mgos_bvar_t v62_8 = mgos_bvar_new();
+  mgos_bvar_t v62_9 = mgos_bvar_new();
+  mgos_bvar_t v62_10 = mgos_bvar_new();
+  mgos_bvar_t v62_11 = mgos_bvar_new();
+  mgos_bvar_free(v62_1);
+  mgos_bvar_free(v62_2);
+  mgos_bvar_free(v62_11);
+  mgos_bvar_free(v62_3);
+  mgos_bvar_free(v62_9);
+  mgos_bvar_free(v62_4);
+  mgos_bvar_free(v62_5);
+  mgos_bvar_free(v62_8);
+  mgos_bvar_free(v62_6);
+  mgos_bvar_free(v62_7);
+  mgos_bvar_free(v62_10);
+  ASSERT_IF_MEMLEAKS;
   
   v1 = mgos_bvar_new();
   v2 = mgos_bvar_new();
@@ -1169,6 +1195,26 @@ int main()
   ASSERT(mgos_bvar_free(v945));
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
+  ASSERT_IF_MEMLEAKS;
+  
+  // testing the dic_key_item store
+  v1 = mgos_bvar_new();
+  mgos_bvar_add_key(v1, "Name1", mgos_bvar_new_str("Mark11"));
+  mgos_bvar_add_key(v1, "Age2", mgos_bvar_new_integer(2));
+  mgos_bvar_add_key(v1, "Name3", mgos_bvar_new_str("Mark3"));
+  mgos_bvar_add_key(v1, "Age4", mgos_bvar_new_integer(4));
+  mgos_bvar_add_key(v1, "Name5", mgos_bvar_new_str("Mark5"));
+  mgos_bvar_add_key(v1, "Age6", mgos_bvar_new_integer(6));
+  mgos_bvar_add_key(v1, "Name7", mgos_bvar_new_str("Mark7"));
+  mgos_bvar_add_key(v1, "Age8", mgos_bvar_new_integer(8));
+  mgos_bvar_add_key(v1, "Name9", mgos_bvar_new_str("Mark9"));
+  mgos_bvar_add_key(v1, "Age10", mgos_bvar_new_integer(10));
+  mgos_bvar_add_key(v1, "Name11", mgos_bvar_new_str("Mark11"));
+  mgos_bvar_add_key(v1, "Age12", mgos_bvar_new_integer(12));
+  mgos_bvar_clear(v1);
+  mgos_bvar_add_key(v1, "Name", mgos_bvar_new_str("Mark"));
+  mgos_bvar_add_key(v1, "Age", mgos_bvar_new_integer(46));
+  mgos_bvar_free(v1);
   ASSERT_IF_MEMLEAKS;
   
   #ifdef MGOS_BVAR_HAVE_JSON

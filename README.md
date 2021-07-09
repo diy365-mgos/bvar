@@ -9,6 +9,7 @@ This Mongoose OS library allows you to create variant bVariants which haven't da
 - Dictionary (key/value pair dictionary) - This requires you to include the [bVariantDictionaries](https://github.com/diy365-mgos/bvar-dic) in your porject.
 ## Features
 - **Observable value** - You can check it the value of a bVariant is changed or not.
+- **Optimized memory allocation** - The library optimizes memory allocation. Blocks of 8 bVariants are automatically allocated and disposed to prevent memory fragmentation.
 - **JSON support** - You can dynamically create a variant varibale from a JSON string or you can save it as JSON in a very easy way. Just include the [bVariant JSON library](https://github.com/diy365-mgos/bvar-json) into your project. 
 ## Get Started in C/C++
 Include the library in your `mos.yml` file.
@@ -20,7 +21,7 @@ libs:
 ```c
 #include "mgos_bvar.h"
 
-mgos_bvar_t n = mgos_bvar_new();                  // void *n = NULL; (type-less var)
+mgos_bvar_t n = mgos_bvar_new();                  // void *n = NULL; (type-less)
 mgos_bvar_t i = mgos_bvar_new_integer(101);       // long i = 101;
 mgos_bvar_t b = mgos_bvar_new_bool(true);         // bool b = true;
 mgos_bvar_t d = mgos_bvar_new_decimal(101.99);    // double d = 101.99;

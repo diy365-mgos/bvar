@@ -123,14 +123,6 @@ struct mg_bvar_json_walk_cb_arg {
 
 #ifdef MGOS_BVAR_HAVE_DIC
 
-static struct mg_bvar_dic_key_item *mg_bvar_dic_key_item_pop();
-
-void mg_bvar_dic_key_item_rel(struct mg_bvar_dic_key_item *item);
-
-struct mg_bvar_dic_key_item *mg_bvar_dic_key_item_alloc(const char *key_name, size_t key_len);
-
-void mg_bvar_dic_key_item_free(struct mg_bvar_dic_key_item *item);
-
 struct mg_bvar_dic_key_item *mg_bvar_dic_get_key_item(mgos_bvarc_t var, mgos_bvarc_t parent_dic);
 
 bool mg_bvar_dic_is_parent(mgos_bvarc_t var, mgos_bvarc_t parent_dic);

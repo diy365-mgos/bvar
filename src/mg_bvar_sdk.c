@@ -474,7 +474,7 @@ enum mgos_bvar_cmp_res mg_bvar_dic_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2) {
     return (MGOS_BVAR_CMP_RES_MAJOR | MGOS_BVAR_CMP_RES_EQUAL); // an exact copy of var2 is contained into the bigger var1 (var1 > var2)
 }
 
-bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
+bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch, bool copy_by_ref) {
   if (!mgos_bvar_is_dic(src)) return false;
   if (!mg_bvar_dic_ensure(dest, false)) return false;
 
@@ -484,12 +484,12 @@ bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
   mgos_bvar_t var = src->value.dic_head.var;
   while(var) {
     key_item = mg_bvar_dic_get_key_item(var, src);
-    value = mg_bvar_dic_get(dest, key_item->key.name, -1, true);
-    //if (value) {
-    mg_bvar_copy(var, value, del_unmatch);
-    //} else {
-    //  mg_bvar_dic_add(dest, key_item->key.name, -1, var); 
-    //}
+    value = mg_bvar_dic_get(dest, key_item->key.name, -1, !copy_by_ref);
+    if (value) {
+      mg_bvar_copy(var, value, del_unmatch);
+    } else {
+      mg_bvar_dic_add(dest, key_item->key.name, -1, var); 
+    }
     var = key_item->key.next_var;
   }
   
@@ -520,7 +520,7 @@ bool mg_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var, bool del_unmatch) 
   
   #ifdef MGOS_BVAR_HAVE_DIC
   if (mgos_bvar_is_dic(src_var)) {
-    return mg_bvar_dic_copy(src_var, dest_var, del_unmatch);
+    return mg_bvar_dic_copy(src_var, dest_var, del_unmatch, false);
   }
   #endif
 

@@ -167,7 +167,7 @@ void mg_bvar_dic_remove_keys(mgos_bvar_t var, bool dispose);
 */
 enum mgos_bvar_cmp_res mg_bvar_dic_cmp(mgos_bvarc_t var1, mgos_bvarc_t var2);
 
-bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch);
+bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch, bool copy_by_ref);
 
 #endif //MGOS_BVAR_HAVE_DIC
 

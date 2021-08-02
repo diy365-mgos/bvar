@@ -130,13 +130,7 @@ bool mgos_bvar_copy(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
 }
 
 bool mgos_bvar_merge(mgos_bvarc_t src_var, mgos_bvar_t dest_var) {
-  if (src_var == dest_var) return true; // merging the same instance
-  #ifdef MGOS_BVAR_HAVE_DIC
-  if (mgos_bvar_is_dic(src_var)) {
-    return  mg_bvar_dic_copy(src_var, dest_var, false);
-  }
-  #endif
-  return mgos_bvar_copy(src_var, dest_var);
+  return mg_bvar_copy(src_var, dest_var, false);
 }
 
 void mgos_bvar_set_integer(mgos_bvar_t var, long value) {

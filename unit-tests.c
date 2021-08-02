@@ -1187,12 +1187,12 @@ int main()
   mgos_bvar_merge(v2, v1);
   ASSERT(mgos_bvar_is_changed(v1));
   ASSERT(mgos_bvar_length(v1) == 3);
+  ASSERT(!mgos_bvar_free(v945));
   ASSERT(mgos_bvar_remove_key(v2, "Gender") != NULL);
   ASSERT(mgos_bvar_length(v2) == 2);
-  ASSERT(!mgos_bvar_free(v945));
-  ASSERT(mgos_bvar_remove_key(v1, "Gender") != NULL);
-  ASSERT(mgos_bvar_length(v1) == 2);
   ASSERT(mgos_bvar_free(v945));
+  mgos_bvar_delete_key(v1, "Gender");
+  ASSERT(mgos_bvar_length(v1) == 2);
   mgos_bvar_free(v1);
   mgos_bvar_free(v2);
   ASSERT_IF_MEMLEAKS;

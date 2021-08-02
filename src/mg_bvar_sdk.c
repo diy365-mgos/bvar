@@ -484,12 +484,12 @@ bool mg_bvar_dic_copy(mgos_bvarc_t src, mgos_bvar_t dest, bool del_unmatch) {
   mgos_bvar_t var = src->value.dic_head.var;
   while(var) {
     key_item = mg_bvar_dic_get_key_item(var, src);
-    value = mg_bvar_dic_get(dest, key_item->key.name, -1, false);
-    if (value) {
-      mg_bvar_copy(var, value, del_unmatch);
-    } else {
-      mg_bvar_dic_add(dest, key_item->key.name, -1, var); 
-    }
+    value = mg_bvar_dic_get(dest, key_item->key.name, -1, true);
+    //if (value) {
+    mg_bvar_copy(var, value, del_unmatch);
+    //} else {
+    //  mg_bvar_dic_add(dest, key_item->key.name, -1, var); 
+    //}
     var = key_item->key.next_var;
   }
   

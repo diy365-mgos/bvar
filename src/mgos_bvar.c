@@ -408,7 +408,7 @@ bool mgos_bvar_add_key(mgos_bvar_t dic, const char *key_name, mgos_bvar_t key_va
   return false;
 }
 
-mgos_bvar_t mg_bvar_set_key(mgos_bvar_t dic, const char *key_name) {
+mgos_bvar_t mgos_bvar_set_key(mgos_bvar_t dic, const char *key_name) {
   mgos_bvar_t key_value = NULL;
   if (!mgos_bvar_try_get_key(dic, key_name, &key_value)) {
     key_value = mgos_bvar_new();
@@ -422,31 +422,31 @@ mgos_bvar_t mg_bvar_set_key(mgos_bvar_t dic, const char *key_name) {
 }
 
 mgos_bvar_t mgos_bvar_set_key_integer(mgos_bvar_t dic, const char *key_name, long key_value) {
-  mgos_bvar_t var_value = mg_bvar_set_key(dic, key_name);
+  mgos_bvar_t var_value = mgos_bvar_set_key(dic, key_name);
   if (var_value) mgos_bvar_set_integer(var_value, key_value);
   return var_value;
 }
 
 mgos_bvar_t mgos_bvar_set_key_bool(mgos_bvar_t dic, const char *key_name, bool key_value) {
-  mgos_bvar_t var_value = mg_bvar_set_key(dic, key_name);
+  mgos_bvar_t var_value = mgos_bvar_set_key(dic, key_name);
   if (var_value) mgos_bvar_set_bool(var_value, key_value);
   return var_value;
 }
 
 mgos_bvar_t mgos_bvar_set_key_decimal(mgos_bvar_t dic, const char *key_name, double key_value) {
-  mgos_bvar_t var_value = mg_bvar_set_key(dic, key_name);
+  mgos_bvar_t var_value = mgos_bvar_set_key(dic, key_name);
   if (var_value) mgos_bvar_set_decimal(var_value, key_value);
   return var_value;
 }
 
 mgos_bvar_t mgos_bvar_set_key_str(mgos_bvar_t dic, const char *key_name, const char *key_value) {
-  mgos_bvar_t var_value = mg_bvar_set_key(dic, key_name);
+  mgos_bvar_t var_value = mgos_bvar_set_key(dic, key_name);
   if (var_value) mgos_bvar_set_str(var_value, key_value);
   return var_value;
 }
 
 mgos_bvar_t mgos_bvar_set_key_nstr(mgos_bvar_t dic, const char *key_name, const char *key_value, size_t value_len) {
-  mgos_bvar_t var_value = mg_bvar_set_key(dic, key_name);
+  mgos_bvar_t var_value = mgos_bvar_set_key(dic, key_name);
   if (var_value) mgos_bvar_set_nstr(var_value, key_value, value_len);
   return var_value;
 }

@@ -72,7 +72,7 @@ Creates and initializes a bVariant. Returns `NULL` if error. Invoking `mgos_bvar
 |value|Value to be set.|
 ### mgos_bvar_new_nstr
 ```c       
-mgos_bvar_t mgos_bvar_new_nstr(const char *value, int value_len);
+mgos_bvar_t mgos_bvar_new_nstr(const char *value, size_t value_len);
 ```
 Creates and initializes a bVariant value to the provided string. This is a specialized version of `mgos_bvar_new_str()`. Returns `NULL` if error. Invoking `mgos_bvar_new_str(NULL, <any_value>)` is equivalent to `mgos_bvar_new()`. The returned instance must be deallocated using `mgos_bvar_free()`.
 

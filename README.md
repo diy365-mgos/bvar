@@ -1,7 +1,7 @@
 # bVariant Library
 ## Overview
-This Mongoose OS library allows you to create variant bVariants which haven't data type declared explicitly (like using `var` statement in javascript). You can create variables that can easily and dynamically assume any data-type within the followings:
-
+This Mongoose OS library allows you to create bVariants. A bVariant is a variable (like `var` in javascript) that can be set to any value within supported data types.
+## Supported data types
 - Boolean (`bool`)
 - Integer (`long`)
 - Decimal (`double`)

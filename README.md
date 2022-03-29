@@ -11,7 +11,7 @@ This Mongoose OS library allows you to create bVariants. A bVariant is a variabl
 - **Observable value** - You can check it the value of a bVariant is changed or not.
 - **Optimized memory allocation** - The library optimizes memory allocation. Blocks of bVariants are automatically allocated and disposed to prevent memory fragmentation.
 - **JSON support** - You can dynamically create a variant varibale from a JSON string or you can save it as JSON in a very easy way. Just include the [bVariant JSON library](https://github.com/diy365-mgos/bvar-json) into your project. 
-## Get Started in C/C++
+## GET STARTED
 Include the library in your `mos.yml` file.
 ```yaml
 libs:

@@ -33,7 +33,7 @@ mgos_bvar_t s = mgos_bvar_new_str("Lorem Ipsum"); // char *s = "Lorem Ipsum";
 #define MGOS_BVAR_CONST(v) ((mgos_bvarc_t)v)
 ```
 Macro to cast a bVariant to constant bVariant. A constant bVariant is readonly ad can't be modified.
-### enum mgos_bvar_type
+### mgos_bvar_type
 ```c
 enum mgos_bvar_type {
   MGOS_BVAR_TYPE_NULL,
@@ -48,7 +48,7 @@ bVariant data-types.
 ```c
 enum mgos_bvar_type mgos_bvar_get_type(mgos_bvarc_t var);
 ```
-Returns the bVariant [data-type](#enum-mgos_bvar_type). Returns `MGOS_BVAR_TYPE_DIC` if it is a dictionary ([bVariantDictionary](https://github.com/diy365-mgos/bvar-dic)).
+Returns the bVariant [data-type](#mgos_bvar_type). Returns `MGOS_BVAR_TYPE_DIC` if it is a dictionary ([bVariantDictionary](https://github.com/diy365-mgos/bvar-dic)).
 
 |Parameter||
 |--|--|

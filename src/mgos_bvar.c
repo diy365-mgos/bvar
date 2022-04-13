@@ -139,7 +139,7 @@ void mgos_bvar_set_integer(mgos_bvar_t var, long value) {
       mg_bvar_close(var, true);
       mg_bvar_set_type(var, MGOS_BVAR_TYPE_INTEGER);
       var->v_size = sizeof(long);
-    } else if (value != var->value.l) {
+    } else if (var->value.l != value) {
       mg_bvar_set_changed(var);
     }
     var->value.l = value;
@@ -222,7 +222,7 @@ void mgos_bvar_set_unchanged(mgos_bvar_t var) {
     mg_bvar_set_asc_unchanged(var, 0);
     #endif
     mg_bvar_set_unchanged(var);
-    var->changed = 0;
+    //var->changed = 0;
   }
 }
 

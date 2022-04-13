@@ -245,21 +245,23 @@ int mg_bvar_dic_walk_parents(mgos_bvar_t var, mg_bvar_dic_walk_parents_t walk_fu
 #endif
 
 void mg_bvar_set_changed(mgos_bvar_t var) {
-  if (!var || mgos_bvar_is_changed(var)) return;
-  #ifdef MGOS_BVAR_HAVE_DIC
-  bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
-                       struct mg_bvar_dic_key_item *key_item) {
-    mg_bvar_set_changed(parent);
-    return true;
-	};
-  mg_bvar_dic_walk_parents(var, on_parent_found, NULL);
-  
-  if (mgos_bvar_is_dic(var)) {
-    ++var->changed;
-    return;
+  //if (!var || mgos_bvar_is_changed(var)) return;
+  if (var) {
+    #ifdef MGOS_BVAR_HAVE_DIC
+    bool on_parent_found(mgos_bvar_t parent, mgos_bvar_t child,
+                        struct mg_bvar_dic_key_item *key_item) {
+      mg_bvar_set_changed(parent);
+      return true;
+    };
+    mg_bvar_dic_walk_parents(var, on_parent_found, NULL);
+    
+    if (mgos_bvar_is_dic(var)) {
+      ++var->changed;
+      return;
+    }
+    #endif
+    var->changed = 1;
   }
-  #endif
-  var->changed = 1;
 }
 
 void mg_bvar_close(mgos_bvar_t var, bool free_str) {
@@ -625,7 +627,7 @@ void mg_bvar_set_asc_unchanged(mgos_bvar_t var, char flag) {
   };
   mg_bvar_dic_walk_parents(var, on_parent_found, NULL);
 
-  if (flag == 1) --var->changed;
+  if (flag == 1 && var->changed > 0) --var->changed;
 }
 #endif
 
